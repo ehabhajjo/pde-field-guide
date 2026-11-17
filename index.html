@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PDE 104220 Field Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,500;0,600;0,700;1,500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script>
+window.MathJax = {
+  tex: { inlineMath: [['\\(','\\)']], displayMath: [['\\[','\\]']] },
+  svg: { fontCache: 'global' },
+  startup: { typeset: false, ready: function(){ MathJax.startup.defaultReady(); window.mjReady = true; if (window.typesetNow) window.typesetNow(); } }
+};
+</script>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js"></script>
+<style>
+  /* layout idea: a lab notebook. three PDE types = three colors used everywhere (hyperbolic teal, parabolic orange, elliptic violet) */
+  :root{
+    --bg:#f2f5f8; --card:#ffffff; --ink:#152033; --sub:#5b677a; --line:#d8e0e9; --soft:#eaf0f5;
+    --hyp:#0b7285; --hyp-soft:#e0f3f6;
+    --par:#c2410c; --par-soft:#fdebe0;
+    --ell:#5f3dc4; --ell-soft:#ece7fb;
+    --ok:#2b8a3e; --ok-soft:#e3f4e6;
+    --shadow:rgba(21,32,51,.08);
+    --display:'Spectral',Georgia,serif; --body:'IBM Plex Sans',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+    color-scheme:light;
+  }
+  :root[data-theme="dark"]{
+    --bg:#0d1219; --card:#161d28; --ink:#e7ecf3; --sub:#94a1b5; --line:#293342; --soft:#1c2533;
+    --hyp:#3bc9db; --hyp-soft:#0f2e36;
+    --par:#ff922b; --par-soft:#3a2413;
+    --ell:#b197fc; --ell-soft:#27204a;
+    --ok:#69db7c; --ok-soft:#15301c;
+    --shadow:rgba(0,0,0,.45);
+    color-scheme:dark;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15.5px;line-height:1.6;
+    background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);
+    background-size:44px 44px;background-attachment:fixed;transition:background-color .35s,color .35s;}
+  body::before{content:"";position:fixed;inset:0;background:var(--bg);opacity:.88;z-index:-1;}
+  .wrap{max-width:1060px;margin:0 auto;padding:0 20px 90px;}
+  a{color:var(--hyp);}
+  :focus-visible{outline:2px solid var(--hyp);outline-offset:2px;border-radius:4px;}
+
+  /* top bar */
+  .top{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);}
+  .top .in{max-width:1060px;margin:0 auto;padding:10px 20px;display:flex;gap:14px;align-items:center;flex-wrap:wrap;}
+  .brand{font-family:var(--mono);font-weight:600;font-size:13px;letter-spacing:.06em;cursor:pointer;background:none;border:none;color:var(--ink);padding:4px 0;}
+  .brand b{color:var(--hyp);}
+  .search{flex:1 1 220px;min-width:160px;position:relative;}
+  .search input{width:100%;font:inherit;font-size:14px;padding:8px 12px 8px 34px;border-radius:9px;border:1px solid var(--line);background:var(--card);color:var(--ink);}
+  .search svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);opacity:.55;}
+  .tbtn{font-family:var(--mono);font-size:12px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:9px;padding:8px 12px;cursor:pointer;white-space:nowrap;}
+  .tbtn:hover{border-color:var(--hyp);}
+
+  /* hero */
+  .hero{display:grid;grid-template-columns:1.05fr 1fr;gap:28px;align-items:center;padding:38px 0 18px;}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--hyp);}
+  h1{font-family:var(--display);font-weight:700;font-size:clamp(32px,5vw,50px);line-height:1.05;margin:10px 0 12px;letter-spacing:-.01em;text-wrap:balance;}
+  h1 em{font-style:italic;font-weight:500;color:var(--par);}
+  .lede{color:var(--sub);max-width:52ch;margin:0 0 16px;}
+  .types{display:flex;gap:8px;flex-wrap:wrap;}
+  .chip{font-family:var(--mono);font-size:11.5px;padding:4px 10px;border-radius:999px;font-weight:500;}
+  .chip.hyp{background:var(--hyp-soft);color:var(--hyp);} .chip.par{background:var(--par-soft);color:var(--par);} .chip.ell{background:var(--ell-soft);color:var(--ell);} .chip.ok{background:var(--ok-soft);color:var(--ok);}
+  .herocv{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 12px 8px;box-shadow:0 8px 26px var(--shadow);}
+  .herocv canvas{width:100%;height:210px;display:block;}
+  .herocv .cap{font-family:var(--mono);font-size:11px;color:var(--sub);padding:4px 4px 2px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;}
+
+  /* progress + grid */
+  .progress{display:flex;align-items:center;gap:12px;margin:14px 0 6px;font-family:var(--mono);font-size:12px;color:var(--sub);}
+  .bar{flex:1;height:6px;background:var(--soft);border-radius:6px;overflow:hidden;border:1px solid var(--line);}
+  .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--hyp),var(--ell),var(--par));transition:width .5s;}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin-top:16px;}
+  .card{position:relative;text-align:left;font:inherit;color:inherit;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 18px 16px;cursor:pointer;display:flex;flex-direction:column;gap:8px;
+    transition:transform .2s cubic-bezier(.2,.7,.3,1),box-shadow .2s,border-color .2s;box-shadow:0 2px 6px var(--shadow);overflow:hidden;}
+  .card::after{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--acc);}
+  .card:hover{transform:translateY(-4px);box-shadow:0 14px 30px var(--shadow);border-color:var(--acc);}
+  .card .num{font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:var(--acc);text-transform:uppercase;display:flex;justify-content:space-between;}
+  .card h3{font-family:var(--display);font-size:20px;margin:0;line-height:1.2;}
+  .card p{margin:0;color:var(--sub);font-size:13.5px;line-height:1.5;flex:1;}
+  .card .meta{font-family:var(--mono);font-size:11px;color:var(--sub);display:flex;justify-content:space-between;align-items:center;gap:8px;}
+  .card .live{color:var(--acc);}
+  .mini{height:4px;background:var(--soft);border-radius:4px;overflow:hidden;}
+  .mini i{display:block;height:100%;background:var(--acc);width:0;transition:width .4s;}
+  [data-acc="hyp"]{--acc:var(--hyp);--acc-soft:var(--hyp-soft);} [data-acc="par"]{--acc:var(--par);--acc-soft:var(--par-soft);}
+  [data-acc="ell"]{--acc:var(--ell);--acc-soft:var(--ell-soft);} [data-acc="ok"]{--acc:var(--ok);--acc-soft:var(--ok-soft);}
+
+  /* chapter page */
+  .page{display:none;} .page.on{display:block;animation:up .35s ease both;}
+  @keyframes up{from{opacity:.4;transform:translateY(10px);}to{opacity:1;transform:none;}}
+  .back{font-family:var(--mono);font-size:12px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:8px 14px;cursor:pointer;margin:22px 0 14px;}
+  .back:hover{border-color:var(--acc,var(--hyp));}
+  .chead{border-bottom:3px solid var(--acc);padding-bottom:14px;margin-bottom:8px;}
+  .chead .num{font-family:var(--mono);font-size:12px;letter-spacing:.1em;color:var(--acc);text-transform:uppercase;}
+  .chead h2{font-family:var(--display);font-size:clamp(26px,4vw,36px);margin:4px 0 6px;line-height:1.1;}
+  .chead p{margin:0;color:var(--sub);max-width:70ch;}
+  .jump{display:flex;gap:6px;flex-wrap:wrap;margin:14px 0 4px;}
+  .jump a{font-family:var(--mono);font-size:11.5px;text-decoration:none;color:var(--sub);border:1px solid var(--line);border-radius:999px;padding:3px 10px;background:var(--card);}
+  .jump a:hover{color:var(--acc);border-color:var(--acc);}
+  h4.sec{font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--acc);border-bottom:1px solid var(--line);padding-bottom:7px;margin:34px 0 14px;scroll-margin-top:70px;}
+
+  .entry{background:var(--card);border:1px solid var(--line);border-left:5px solid var(--ec);border-radius:12px;padding:16px 18px 14px;margin-bottom:14px;box-shadow:0 2px 5px var(--shadow);transition:transform .2s,box-shadow .2s,opacity .3s;}
+  .entry:hover{transform:translateX(3px);box-shadow:0 10px 22px var(--shadow);}
+  .entry.thm{--ec:var(--ell);--es:var(--ell-soft);} .entry.def{--ec:var(--hyp);--es:var(--hyp-soft);} .entry.met{--ec:var(--ok);--es:var(--ok-soft);} .entry.ex{--ec:var(--par);--es:var(--par-soft);}
+  .entry.done{opacity:.72;}
+  .ehead{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;}
+  .kind{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ec);font-weight:600;}
+  .entry h3{font-family:var(--display);font-size:19px;margin:1px 0 8px;line-height:1.25;}
+  .got{font-family:var(--mono);font-size:11px;color:var(--sub);display:inline-flex;gap:5px;align-items:center;cursor:pointer;white-space:nowrap;user-select:none;}
+  .got input{accent-color:var(--ok);}
+  .formula{background:var(--es);border-radius:9px;padding:8px 12px;margin:6px 0 10px;overflow-x:auto;}
+  .entry p{margin:6px 0;}
+  .lab{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;display:block;margin-bottom:2px;}
+  .does .lab{color:var(--ec);} .reqs .lab{color:var(--sub);}
+  .entry ul,.entry ol{margin:2px 0 6px;padding-left:1.25em;} .entry li{margin-bottom:3px;}
+  .stop{background:var(--par-soft);border-left:4px solid var(--par);border-radius:7px;padding:8px 12px;margin-top:10px;}
+  .stop .lab{color:var(--par);}
+  .note{color:var(--sub);font-size:13.5px;font-style:italic;}
+
+  /* widgets */
+  .lab-w{background:var(--card);border:1px dashed var(--acc);border-radius:14px;padding:16px 18px;margin:8px 0 18px;box-shadow:0 2px 5px var(--shadow);}
+  .lab-w .wt{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:baseline;}
+  .lab-w .wt b{font-family:var(--display);font-size:18px;}
+  .lab-w .wt span{font-family:var(--mono);font-size:11px;color:var(--acc);letter-spacing:.08em;text-transform:uppercase;}
+  .lab-w p{margin:4px 0 10px;color:var(--sub);font-size:13.5px;}
+  .lab-w canvas{width:100%;display:block;border-radius:9px;background:var(--soft);touch-action:none;}
+  .ctl{display:flex;gap:10px 16px;flex-wrap:wrap;align-items:center;margin:10px 0 2px;font-family:var(--mono);font-size:12px;}
+  .ctl label{display:inline-flex;gap:7px;align-items:center;}
+  .ctl input[type=range]{accent-color:var(--acc);width:150px;}
+  .ctl input[type=number]{width:64px;font:inherit;padding:4px 6px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);}
+  .ctl select,.ctl button{font:inherit;padding:5px 10px;border:1px solid var(--line);border-radius:7px;background:var(--bg);color:var(--ink);cursor:pointer;}
+  .ctl button:hover,.ctl select:hover{border-color:var(--acc);}
+  .ctl button.pri{background:var(--acc);color:var(--card);border-color:var(--acc);}
+  .read{font-family:var(--mono);font-size:12.5px;background:var(--acc-soft);color:var(--ink);border-radius:8px;padding:8px 12px;margin-top:10px;line-height:1.55;}
+  .read b{color:var(--acc);}
+
+  table.map{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;font-size:14px;}
+  table.map th,table.map td{padding:10px 14px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top;}
+  table.map th{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;background:var(--soft);color:var(--sub);}
+  table.map tr:last-child td{border-bottom:none;}
+  table.map tr.go{cursor:pointer;} table.map tr.go:hover td{background:var(--soft);}
+  .tw{overflow-x:auto;border-radius:12px;}
+  .empty{color:var(--sub);padding:30px 0;font-family:var(--mono);font-size:13px;}
+  footer{color:var(--sub);font-family:var(--mono);font-size:11px;text-align:center;padding:36px 0 0;}
+  @media (max-width:760px){.hero{grid-template-columns:1fr;padding-top:24px;} .ctl input[type=range]{width:120px;}}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;}}
+</style>
+</head>
+<body>
+<div class="top"><div class="in">
+  <button class="brand" id="brand" aria-label="Back to all chapters">PDE<b>·</b>104220</button>
+  <div class="search">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+    <input id="q" type="search" placeholder="Search theorems, methods, traps… (try: resonance, Neumann, J = 0)" aria-label="Search the guide">
+  </div>
+  <button class="tbtn" id="theme" aria-label="Toggle light and dark mode">☾ Dark</button>
+</div></div>
+
+<div class="wrap">
+  <div class="page on" id="home">
+    <section class="hero">
+      <div>
+        <div class="eyebrow">Technion · PDE ת׳ · Shlomi Gover's notes + Moodle tutorials</div>
+        <h1>Partial Differential Equations, <em>the working guide</em></h1>
+        <p class="lede">Everything the course asks you to know, organised by what you actually do in the exam: the statement, when it applies, the steps, and where it breaks. Nine live experiments let you see each idea move.</p>
+        <div class="types"><span class="chip hyp">hyperbolic · wave</span><span class="chip par">parabolic · heat</span><span class="chip ell">elliptic · Laplace</span><span class="chip ok">method</span></div>
+      </div>
+      <div class="herocv">
+        <canvas id="heroc" height="210"></canvas>
+        <div class="cap"><span>u(x,t) = ½ f(x+ct) + ½ f(x−ct)</span><span id="herot">t = 0.00</span></div>
+      </div>
+    </section>
+    <div class="progress"><span id="ptext">0 of 0 marked</span><div class="bar"><i id="pbar"></i></div><button class="tbtn" id="reset">Reset marks</button></div>
+    <div class="grid" id="grid"></div>
+  </div>
+  <div id="pages"></div>
+  <div class="page" id="searchpage">
+    <button class="back" data-home>← All chapters</button>
+    <div class="chead" data-acc="hyp"><div class="num">Search</div><h2 id="stitle">Results</h2></div>
+    <div id="sres"></div>
+  </div>
+  <footer>Built from the course reader and tutorials in this project · constants and conventions follow the lecture notes (the u<sub>xy</sub> coefficient is 2b)</footer>
+</div>
+<script>
+const R = String.raw;
+const CH = [
+{ id:'basics', acc:'ok', n:'01', title:'Basics and PDEs you solve as ODEs',
+  blurb:'Order, linearity, superposition, side conditions, classical vs generalized solutions, and the integrate-in-one-variable trick.',
+  items:[
+  {sec:'Vocabulary'},
+  {c:'def',k:'Definitions 1.2–1.4',t:'Order, linearity, homogeneity',
+   f:R`\[F(x_1,\dots,x_n,u,u_{x_1},\dots,u_{x_1x_1},\dots)=0\]`,
+   d:R`<b>Order</b> = highest partial derivative. <b>Linear</b>: \(F\) is linear in \(u\) and all its derivatives. <b>Semi-linear</b>: linear in the partial derivatives. <b>Quasi-linear</b>: linear in the derivatives of top order. A linear equation is <b>homogeneous</b> when it has no free term \(g(x,y)\).`,
+   n:R`Examples from the notes: \(u_{xx}+u_{yy}=u_x+u^3\) is semi-linear; \(u_{xx}+u_{yy}=(u_x^2+u_y^2)u^3\) is quasi-linear; \(u_x^2+u_y^2=1\) is non-linear.`},
+  {c:'thm',k:'Claim 1.5',t:'Superposition principle',
+   d:R`Solutions of a linear homogeneous equation form a linear space. Solutions of a linear non-homogeneous equation form an affine space: one particular solution plus the general homogeneous solution.`,
+   x:[R`The equation is not linear. Sums of solutions are then not solutions, and every "subtract two solutions" uniqueness argument fails.`]},
+  {c:'def',k:'Section 1.2',t:'Side conditions',
+   d:R`<b>Dirichlet</b>: \(u\) given on the boundary. <b>Neumann</b>: the normal derivative \(\partial_n u\) given. <b>Robin</b>: a linear combination of both. <b>Mixed</b>: different types on different boundary pieces. <b>Initial condition</b>: data at \(t=t_0\). <b>Initial curve</b>: a curve the solution surface must contain, such as \(u(x,2x)=x^2\), i.e. \((s,2s,s^2)\).`},
+  {c:'def',k:'Definitions 1.7–1.9',t:'Classical solution, generalized solution, well-posedness',
+   d:R`A <b>classical</b> solution is continuously differentiable up to the order of the equation in the domain. A <b>generalized</b> solution satisfies this except on finitely many curves or points. A Cauchy problem is <b>well posed</b> (Hadamard) when it has existence, uniqueness and stability.`},
+  {sec:'Solving'},
+  {c:'met',k:'Method · Tutorial 1',t:'Derivatives in one variable only: treat it as an ODE',
+   f:R`\[u_x+p(x,y)\,u=q(x,y)\ \Longrightarrow\ \mu=e^{\int p\,dx},\qquad u=\mu^{-1}\Big[\int\mu\,q\,dx+F(y)\Big]\]`,
+   s:[R`Treat the other variable as a parameter and solve the ODE.`,
+      R`Every integration constant becomes an <b>arbitrary function of the other variable</b>.`,
+      R`Coefficients constant in the differentiation variable: try \(u=e^{ry}\) and read off the characteristic polynomial. A mixed derivative: set \(v=u_x\) to lower the order.`,
+      R`Plug in the side condition to pin down the free function. The outcome is always one of three: a unique solution, none, or infinitely many.`],
+   n:R`\(u_x+yu=y\) gives \(u=1+F(y)e^{-xy}\). With \(u(0,y)=y\): unique. With \(u(x,0)=1\): only \(F(0)=0\) is needed, so infinitely many. With \(u(x,0)=x\): impossible.`}
+  ]},
+
+{ id:'first-order', acc:'ok', n:'02', title:'First-order quasi-linear equations', live:1,
+  blurb:'The method of characteristics, the transversality condition, and how to tell one solution from none from infinitely many.',
+  items:[
+  {sec:'The method'},
+  {c:'def',k:'Equation (1)–(3)',t:'The Cauchy problem and its geometry',
+   f:R`\[a(x,y,u)\,u_x+b(x,y,u)\,u_y=c(x,y,u),\qquad \Gamma(s)=\big(f(s),g(s),h(s)\big)\]`,
+   d:R`The equation says \((a,b,c)\cdot(u_x,u_y,-1)=0\): the vector \((a,b,c)\) is tangent to the solution surface. The surface is a union of <b>characteristic curves</b> with direction \((a,b,c)\) that pass through the initial curve.`},
+  {c:'met',k:'Method · Section 2.1',t:'Method of characteristics',
+   f:R`\[x_t=a,\quad y_t=b,\quad u_t=c,\qquad (x,y,u)\big|_{t=0}=\big(f(s),g(s),h(s)\big)\]`,
+   s:[R`Parametrise the initial curve: \(u(x,0)=x^2\) becomes \((s,0,s^2)\).`,
+      R`Check transversality on the curve (next card).`,
+      R`Solve the characteristic system with the initial values at \(t=0\). Solve an uncoupled equation first; add or subtract equations to get an ODE for a combination, e.g. \((x+u)_t=x+u\).`,
+      R`Invert \(x(t,s),y(t,s)\) for \(s,t\) and substitute into \(u\).`,
+      R`Verify by substitution and state the largest domain containing the projection of the initial curve where the formula is defined.`],
+   x:[R`You cannot invert for \(s,t\) explicitly. Leave the answer in implicit or parametric form; existence is still guaranteed by the theorem.`]},
+  {w:'trans'},
+  {c:'thm',k:'Definition 2.3 · Theorem 2.4',t:'Transversality and local existence-uniqueness',
+   f:R`\[J=\begin{vmatrix}a(f,g,h)&b(f,g,h)\\ f'(s)&g'(s)\end{vmatrix}\neq0\]`,
+   d:R`If the coefficients and the initial curve are \(C^1\) and \(J\neq0\) at \(\Gamma(s_0)\), there is a unique classical solution near \(\Gamma(s_0)\), and it is the one the method produces.`,
+   r:[R`\(a,b,c\) continuously differentiable near the curve`,R`\(\Gamma\) continuously differentiable`,R`\(J\neq0\) at the point`],
+   x:[R`You need a global statement. The theorem is local: \(u=\frac2y+x-y\) solves its problem only for \(y\gt0\).`,
+      R`\(J=0\). The theorem is silent; go to the three-case test.`]},
+  {sec:'How many solutions'},
+  {c:'thm',k:'Sections 2.4–2.6',t:'The three cases',
+   f:R`\[\begin{pmatrix}a&b&c\\ f'&g'&h'\end{pmatrix}\ \text{evaluated on } \Gamma\]`,
+   d:R`<b>\(J\neq0\)</b>: unique local solution. <b>\(J=0\) and the rows are dependent</b> (the initial curve is itself characteristic, \((a,b,c)\parallel(f',g',h')\)): infinitely many local solutions, provided \(|a|+|b|\gt0\) on the curve. <b>\(J=0\) and the rows are independent</b>: no solution.`,
+   x:[R`Declaring "no solution" from \(J=0\) alone. You must test the extended matrix first.`,
+      R`Forgetting that for a quasi-linear equation the coefficients are evaluated at \(u=h(s)\).`]},
+  {c:'met',k:'Method · Section 2.5',t:'Producing infinitely many solutions',
+   s:[R`Invent a new curve with a free function, e.g. \((s,0,p(s))\) or \((0,s,h(s))\), that <b>crosses</b> the original curve and satisfies transversality at the crossing point.`,
+      R`Impose that it passes through the crossing point, e.g. \(p(0)=0\).`,
+      R`Solve with the new curve. Each admissible \(p\) gives a solution containing the original curve or part of it.`],
+   n:R`\(u_x+u_y=1,\ u(x,x)=x\): the curve is characteristic. Using \((s,0,p(s))\) with \(p(0)=0\) gives \(u=y+p(x-y)\).`,
+   x:[R`The helper curve meets the original only where transversality fails. The resulting formula is then undefined on the original curve (the \(u(1,y)=h(y)\) attempt for \(xyu_x+yu_y=u\) with data on \(x=e^y\)).`]},
+  {c:'met',k:'Method · Section 2.3',t:'General solution by a free initial curve',
+   d:R`Replace the data by a curve with a degree of freedom, e.g. \(u(x,0)=f(x)\). The result is a family such as \(u=2y+f(x-y)\) for \(u_x+u_y=2\); specific problems are then solved by substitution alone.`},
+  {c:'ex',k:'Worked answers',t:'Results to recognise',
+   d:R`<ul><li>\(u_x+u_y=2,\ u(x,0)=x^2\): \(u=2y+(x-y)^2\), \(J=-1\).</li>
+   <li>\((y+u)u_x+yu_y=x-y,\ u(x,1)=1+x\): \(u=\frac2y+x-y\) on \(y\gt0\).</li>
+   <li>\(u_x+u_y=u^2,\ u(x,2x)=x\): \(u=-\dfrac{y-x}{(2x-y)(y-x)-1}\) where \((2x-y)(y-x)\lt1\).</li>
+   <li>\((y+u)u_x+yu_y=x-y,\ u(x,0)=g(x)\): \(J=0\) always; infinitely many solutions iff \(g\,g'=s\), i.e. \(g=\pm\sqrt{s^2+C}\).</li></ul>`}
+  ]},
+
+{ id:'classification', acc:'ell', n:'03', title:'Classification and canonical forms', live:1,
+  blurb:'The discriminant with the 2b convention, the characteristic ODE, and the change of variables for each of the three types.',
+  items:[
+  {sec:'Classify'},
+  {c:'def',k:'Equation (4) · Definition 3.1',t:'Discriminant and type',
+   f:R`\[a\,u_{xx}+2b\,u_{xy}+c\,u_{yy}+d\,u_x+e\,u_y+f\,u=g,\qquad \delta=b^2-ac\]`,
+   d:R`\(\delta\gt0\): <b>hyperbolic</b>. \(\delta=0\): <b>parabolic</b>. \(\delta\lt0\): <b>elliptic</b>. The type is decided point by point, so one equation can change type across the plane (\(u_{xx}-xu_{yy}=0\) has \(\delta=x\)).`,
+   x:[R`Reading \(b\) as the full coefficient of \(u_{xy}\). In this course that coefficient is \(2b\).`]},
+  {w:'classify'},
+  {c:'thm',k:'Definition 3.2 · Lemma 3.4',t:'Change of variables keeps the type',
+   f:R`\[A=as_x^2+2bs_xs_y+cs_y^2,\quad B=as_xt_x+b(s_xt_y+s_yt_x)+cs_yt_y,\quad C=at_x^2+2bt_xt_y+ct_y^2\]`,
+   d:R`For \(v(s,t)=u(x(s,t),y(s,t))\) with \(J=s_xt_y-s_yt_x\neq0\), the new principal part is \(Av_{ss}+2Bv_{st}+Cv_{tt}\) and \(B^2-AC=J^2(b^2-ac)\).`},
+  {c:'def',k:'Chain rule',t:'The derivatives you substitute',
+   f:R`\[\begin{aligned}u_x&=v_ss_x+v_tt_x,\qquad u_y=v_ss_y+v_tt_y\\ u_{xx}&=v_{ss}s_x^2+2v_{st}s_xt_x+v_{tt}t_x^2+v_ss_{xx}+v_tt_{xx}\\ u_{xy}&=v_{ss}s_xs_y+v_{st}(s_xt_y+s_yt_x)+v_{tt}t_xt_y+v_ss_{xy}+v_tt_{xy}\\ u_{yy}&=v_{ss}s_y^2+2v_{st}s_yt_y+v_{tt}t_y^2+v_ss_{yy}+v_tt_{yy}\end{aligned}\]`,
+   x:[R`Dropping the \(v_ss_{xx}+v_tt_{xx}\) terms when the substitution is not linear.`]},
+  {sec:'Canonical form'},
+  {c:'met',k:'Method · Sections 3.3–3.5',t:'Finding the canonical variables',
+   f:R`\[\frac{dy}{dx}=\frac{b\pm\sqrt{b^2-ac}}{a}\]`,
+   s:[R`Solve the characteristic ODE and isolate the constants: \(f_\pm(x,y)=C_\pm\).`,
+      R`<b>Hyperbolic</b>: \(s=f_+,\ t=f_-\). Target principal part \(v_{st}\).`,
+      R`<b>Parabolic</b>: one family, \(\frac{dy}{dx}=\frac ba\), gives \(s\); pick any \(t\) with \(J\neq0\), e.g. \(t=x\). Target \(v_{tt}\).`,
+      R`<b>Elliptic</b>: the solution is complex, \(\phi_\pm=s\pm it\); take \(s=\mathrm{Re}\,\phi_+,\ t=\mathrm{Im}\,\phi_+\). Target \(v_{ss}+v_{tt}\).`,
+      R`Substitute the chain rule, then rewrite leftover coefficients in \(s,t\).`],
+   x:[R`\(a=c=0\) at the point. First rotate with \(X=x+y,\ Y=x-y\).`]},
+  {c:'met',k:'Method · Tutorial 4',t:'General solution and fitting two conditions',
+   s:[R`Integrate the canonical form step by step, as in chapter 1; two free functions \(F,G\) appear.`,
+      R`Return to \(x,y\).`,
+      R`Substitute the two conditions (typically \(u\) and \(u_y\) on a line). Differentiate the first relation along the line and subtract to isolate \(F\) or \(F'\).`,
+      R`Rename the argument (\(z=3x\), \(z=8x\)) to get \(F(z),G(z)\).`],
+   n:R`\(u_{xx}-6u_{xy}+9u_{yy}=y+3x\): \(s=y+3x,\ t=x\), \(v_{tt}=s\), so \(u=\tfrac12(y+3x)x^2+xF(y+3x)+G(y+3x)\). \(u_{xx}+4u_{xy}+yu_x=0\): \(s=y-4x,\ t=y\), \(v_{st}+\tfrac t4v_s=0\), so \(u=F(y-4x)e^{-y^2/8}+G(y)\).`},
+  {c:'ex',k:'Example · Section 3.3',t:'An equation that changes type',
+   d:R`\(u_{xx}-xu_{yy}=0\). For \(x\gt0\): \(s=y+\tfrac23x^{3/2},\ t=y-\tfrac23x^{3/2}\) and the canonical form is \(v_{st}-\dfrac16\dfrac{v_s-v_t}{s-t}=0\). For \(x\lt0\): \(s=y,\ t=\tfrac23(-x)^{3/2}\).`}
+  ]},
+
+{ id:'wave', acc:'hyp', n:'04', title:'The wave equation', live:2,
+  blurb:"d'Alembert on the line, sources, the quarter plane by reflection, and the parallelogram rule.",
+  items:[
+  {sec:'On the whole line'},
+  {c:'thm',k:'Section 4',t:'General solution',
+   f:R`\[u_{tt}-c^2u_{xx}=0\ \Longleftrightarrow\ u(x,t)=F(x+ct)+G(x-ct)\]`,
+   d:R`With \(s=x+ct,\ r=x-ct\) the equation becomes \(w_{sr}=0\). \(G(x-ct)\) travels right, \(F(x+ct)\) travels left, both at speed \(c\). The characteristics are \(x\pm ct=\text{const}\).`},
+  {c:'thm',k:"Formulas (8), (10)",t:"d'Alembert's formula",
+   f:R`\[u=\frac{f(x+ct)+f(x-ct)}{2}+\frac1{2c}\int_{x-ct}^{x+ct}g(s)\,ds+\frac1{2c}\int_0^t\!\!\int_{x-c(t-\tau)}^{x+c(t-\tau)}F(s,\tau)\,ds\,d\tau\]`,
+   d:R`Solves \(u_{tt}-c^2u_{xx}=F\), \(u(x,0)=f\), \(u_t(x,0)=g\) on \(x\in\mathbb R\). The solution is unique.`,
+   r:[R`Classical when \(f\in C^2\), \(g\in C^1\), and \(F,F_x\) continuous`,R`Piecewise versions give a generalized solution`],
+   x:[R`A boundary is present. Use the formula only at points whose dependence interval \([x-ct,x+ct]\) stays inside the data (Claim 4.3).`,
+      R`Misreading \(c\): \(u_{tt}-9u_{xx}\) has \(c=3\), so the prefactor is \(\tfrac16\).`]},
+  {w:'dalembert'},
+  {c:'thm',k:'Claims 4.1–4.3',t:'Regularity and domain of dependence',
+   d:R`\(f\in C^n,\ g\in C^{n-1}\Rightarrow u\in C^n\). A point \(x_0\) where \(f\) or \(g\) loses smoothness spreads along \(x\pm ct=x_0\) and never disappears. \(u(x,t)\) depends on \(f\) at \(x\pm ct\), on \(g\) over \([x-ct,x+ct]\), and on \(F\) over the characteristic triangle below \((x,t)\).`,
+   n:R`Tutorial 5: \(c=2\), \(f=|x|\), \(g\) jumps at \(x=1\). The solution is continuous and is \(C^2\) away from \(x\pm2t=0\) and \(x\pm2t=1\).`},
+  {w:'cone'},
+  {c:'met',k:'Method · Section 4.2',t:'A source term: formula or correction',
+   s:[R`<b>Direct</b>: evaluate the double integral over the characteristic triangle.`,
+      R`<b>Correction</b>: guess a particular solution \(v\) of the equation alone. Then \(w=u-v\) solves the homogeneous equation with \(w(x,0)=f-v(x,0)\), \(w_t(x,0)=g-v_t(x,0)\).`,
+      R`Guesses: \(F=\sin(x+t)\Rightarrow v=C\sin(x+t)\); \(F=p(t)+q(x)\Rightarrow v=A(x)+B(t)\) with \(B''=p\), \(-c^2A''=q\).`],
+   n:R`By uniqueness both routes give the same answer. Tutorial 5: \(u_{tt}-4u_{xx}=t^2+x\) with \(f=x\), \(g=\tfrac{x^2}4\) gives \(u=x+\tfrac{t^4}{12}+\tfrac{xt^2}2+\tfrac{x^2t}4+\tfrac{t^3}3\).`},
+  {c:'thm',k:'Claim 4.4',t:'Uniqueness through the homogeneous problem',
+   d:R`If \(u_1,u_2\) solve a <b>linear</b> problem, \(w=u_1-u_2\) solves the homogeneous problem with zero data. If that problem only has \(w\equiv0\), the solution is unique. This template is reused for heat, wave and Laplace.`},
+  {sec:'Quarter plane'},
+  {c:'thm',k:'Claim 4.5',t:'Symmetry is preserved',
+   d:R`If \(f,g\) and \(F(\cdot,t)\) are odd in \(x\), so is the solution. The same holds for even and for periodic data. Proof: \(v(x,t)=-u(-x,t)\) solves the same problem, and uniqueness gives \(v=u\).`},
+  {c:'met',k:'Method · Section 4.3',t:'Reflection for x > 0',
+   f:R`\[x\lt ct,\ u(0,t)=0:\qquad u=\frac{f(x+ct)-f(ct-x)}{2}+\frac1{2c}\int_{ct-x}^{x+ct}g(s)\,ds\]`,
+   s:[R`\(u(0,t)=0\): extend \(f,g,F\) as <b>odd</b> functions. \(u_x(0,t)=0\): extend as <b>even</b> functions.`,
+      R`Apply d'Alembert to the extended problem.`,
+      R`Split into \(x\ge ct\) (plain d'Alembert with the original data) and \(x\lt ct\) (the reflected wave has arrived).`,
+      R`Non-zero boundary data \(u(0,t)=h(t)\): work with \(v=u-h(t)\); the equation and the initial data change.`]},
+  {c:'thm',k:'Claim 4.9',t:'Parallelogram rule',
+   f:R`\[u(A)+u(D)=u(B)+u(E)\]`,
+   d:R`For a solution of the <b>homogeneous</b> wave equation and any parallelogram whose sides lie on characteristics, with opposite vertices \(A,D\) and \(B,E\). For \(u(0,t)=h(t)\) and a point with \(x\lt ct\), use the vertices \((x,t),\ (0,t-\tfrac xc),\ (ct-x,0),\ (ct,\tfrac xc)\): \[u(x,t)=h\big(t-\tfrac xc\big)+u\big(ct,\tfrac xc\big)-f(ct-x).\]`,
+   x:[R`The equation has a source. Correct it to a homogeneous one first, or use reflection.`]}
+  ]},
+
+{ id:'sturm-liouville', acc:'ok', n:'05', title:'Sturm–Liouville and eigenfunction expansions', live:1,
+  blurb:'Regular and periodic problems, the standard eigenpairs, generalized Fourier coefficients, and the three modes of convergence.',
+  items:[
+  {sec:'The problem'},
+  {c:'def',k:'Equations (13), (14), (16)',t:'Regular and periodic problems',
+   f:R`\[(p\,v')'+q\,v+\lambda\,r\,v=0,\qquad p,r\gt0\]`,
+   d:R`\(r\) is the <b>weight</b>. <b>Regular</b>: \(\alpha v(a)+\beta v'(a)=0\), \(\gamma v(b)+\delta v'(b)=0\) with \(|\alpha|+|\beta|\gt0\), \(|\gamma|+|\delta|\gt0\); every eigenvalue is simple. <b>Periodic</b>: \(v(a)=v(b)\), \(v'(a)=v'(b)\) with periodic coefficients; multiplicity 1 or 2.`},
+  {c:'thm',k:'Claim 5.2',t:'Properties of eigenvalues and eigenfunctions',
+   f:R`\[\lambda\neq\mu\ \Longrightarrow\ \int_a^b u\,v\,r\,dx=0\]`,
+   d:R`Eigenfunctions of different eigenvalues are orthogonal with weight \(r\). All eigenvalues are real, and they form an increasing sequence tending to infinity. There is an orthonormal sequence of real eigenfunctions for \(\langle u,v\rangle_r=\int_a^buvr\,dx\).`,
+   x:[R`Forgetting the weight. For the Euler problem \(x^2y''+xy'+\lambda y=0\), dividing by \(x\) gives \((xy')'+\lambda\tfrac1xy=0\), so \(r=\tfrac1x\).`]},
+  {c:'met',k:'Method · SL tutorial',t:'Solving an eigenvalue problem',
+   s:[R`Solve the ODE in the three cases \(\lambda\lt0\), \(\lambda=0\), \(\lambda\gt0\) (constant coefficients: \(e^{rx}\), \(r=\pm\sqrt{-\lambda}\); Euler: \(x^r\)).`,
+      R`Apply both boundary conditions in each case and look for a non-trivial solution.`,
+      R`\(\lambda\lt0\) usually forces \(A=B=0\). \(\lambda=0\) must be checked on its own. \(\lambda\gt0\) yields an equation such as \(\sin(\sqrt\lambda L)=0\).`,
+      R`Record \(\lambda_n\), \(v_n\) and where the index starts.`]},
+  {c:'def',k:'Reference table',t:'Standard eigenpairs of X″ + λX = 0 on (0, L)',
+   d:R`<div class="tw"><table class="map"><tr><th>Boundary conditions</th><th>\(\lambda_n\)</th><th>\(X_n\)</th><th>\(n\)</th></tr>
+   <tr><td>\(X(0)=X(L)=0\)</td><td>\((n\pi/L)^2\)</td><td>\(\sin\frac{n\pi x}L\)</td><td>\(\ge1\)</td></tr>
+   <tr><td>\(X'(0)=X'(L)=0\)</td><td>\((n\pi/L)^2\)</td><td>\(\cos\frac{n\pi x}L\)</td><td>\(\ge0\)</td></tr>
+   <tr><td>\(X(0)=0,\ X'(L)=0\)</td><td>\(\big(\frac{(2n-1)\pi}{2L}\big)^2\)</td><td>\(\sin\frac{(2n-1)\pi x}{2L}\)</td><td>\(\ge1\)</td></tr>
+   <tr><td>\(X'(0)=0,\ X(L)=0\)</td><td>\(\big(\frac{(2n-1)\pi}{2L}\big)^2\)</td><td>\(\cos\frac{(2n-1)\pi x}{2L}\)</td><td>\(\ge1\)</td></tr>
+   <tr><td>periodic on \((-L,L)\)</td><td>\((n\pi/L)^2\)</td><td>\(\cos\frac{n\pi x}L,\ \sin\frac{n\pi x}L\)</td><td>\(\ge0\)</td></tr>
+   <tr><td>Euler on \((1,e)\): \(y'(1)=y(e)=0\)</td><td>\((n+\frac12)^2\pi^2\)</td><td>\(\cos[(n+\frac12)\pi\ln x]\)</td><td>\(\ge0\)</td></tr></table></div>`},
+  {sec:'Expansions'},
+  {c:'def',k:'Definition 5.4 · Remark 5.5',t:'Generalized Fourier coefficients',
+   f:R`\[f\sim\sum_n c_n v_n,\qquad c_n=\frac{\langle f,v_n\rangle_r}{\langle v_n,v_n\rangle_r}\]`,
+   d:R`Sine series on \([0,L]\): \(b_n=\frac2L\int_0^Lf\sin\frac{n\pi x}L\,dx\). Cosine series: \(\frac{a_0}2+\sum a_n\cos\frac{n\pi x}L\), \(a_n=\frac2L\int_0^Lf\cos\frac{n\pi x}L\,dx\). Full Fourier series on \([-L,L]\): prefactor \(\frac1L\) and integrals over \([-L,L]\).`,
+   n:R`If \(f\) is already a finite combination of eigenfunctions, such as \(\cos^2\pi x=\frac{1+\cos2\pi x}2\), compare coefficients and skip the integrals.`},
+  {w:'series'},
+  {c:'thm',k:'Theorem 5.6',t:'Convergence of the expansion',
+   d:R`For piecewise continuous \(f\): (1) the expansion converges to \(f\) <b>in norm</b>. (2) If \(f\) is piecewise \(C^1\), it converges <b>pointwise to the average of the jump</b> on the open interval \((a,b)\). (3) If \(f\) is continuous, piecewise \(C^1\) and satisfies both boundary conditions of the problem, it converges <b>uniformly</b> on \([a,b]\).`,
+   x:[R`Claiming pointwise convergence at the endpoints. The theorem says nothing there; substitute into the series directly.`,
+      R`Concluding "not uniform" because the hypotheses of (3) fail. They are sufficient only. To rule it out, show that continuous terms converge pointwise to a discontinuous function on the closed interval.`]}
+  ]},
+
+{ id:'separation', acc:'par', n:'06', title:'Separation of variables', live:2,
+  blurb:'Heat and wave on an interval, sources and resonance, non-homogeneous boundary data, classical-solution checks and energy uniqueness.',
+  items:[
+  {sec:'The scheme'},
+  {c:'met',k:'Section 6.8',t:'The seven-step scheme',
+   s:[R`Make the boundary conditions homogeneous with a correction function if needed.`,
+      R`Substitute \(u=X(x)T(t)\) into the <b>homogeneous</b> equation and the boundary conditions; solve the Sturm–Liouville problem for \(X\).`,
+      R`Write \(u=\sum_nT_n(t)X_n(x)\). For a homogeneous equation you may solve for \(T_n\) now.`,
+      R`Substitute the series into the equation: expand the source as \(\sum F_n(t)X_n\) and get an ODE for each \(T_n\).`,
+      R`Substitute into the initial conditions to get \(T_n(0)\) and, for the wave equation, \(T_n'(0)\).`,
+      R`Solve each ODE and assemble.`,
+      R`If asked: prove the solution is classical (convergence theorems) or not (compatibility), and prove uniqueness (energy integral).`]},
+  {c:'thm',k:'Formula (19)',t:'Heat equation, Dirichlet ends',
+   f:R`\[u(x,t)=\sum_{n=1}^\infty A_n\,e^{-k(n\pi/L)^2t}\sin\frac{n\pi x}L,\qquad A_n=\frac2L\int_0^Lf(x)\sin\frac{n\pi x}L\,dx\]`,
+   d:R`Solves \(u_t-ku_{xx}=0\), \(u(x,0)=f\), \(u(0,t)=u(L,t)=0\). Compatibility for a classical solution: \(f(0)=f(L)=0\).`,
+   n:R`Tent data (\(x\) up to \(\tfrac L2\), then \(L-x\)): \(A_n=\dfrac{4L}{(n\pi)^2}\sin\dfrac{n\pi}2\).`},
+  {c:'thm',k:'Section 6.4',t:'Wave equation, Dirichlet ends',
+   f:R`\[u=\sum_{n=1}^\infty\Big[A_n\cos\frac{cn\pi t}L+B_n\sin\frac{cn\pi t}L\Big]\sin\frac{n\pi x}L,\quad A_n=\frac2L\int_0^Lf\sin\frac{n\pi x}L,\quad \frac{cn\pi}LB_n=\frac2L\int_0^Lg\sin\frac{n\pi x}L\]`,
+   d:R`Compatibility: \(f(0)=f(L)=0\) and \(g(0)=g(L)=0\). With Neumann ends replace sines by cosines and add \(n=0\), where \(T_0=A_0+B_0t\) (Tutorial 6).`},
+  {w:'heatwave'},
+  {sec:'Sources and boundary data'},
+  {c:'met',k:'Method · Sections 6.3, 6.5',t:'A source term: ODEs for the coefficients',
+   f:R`\[\text{heat: } T_n'+k\lambda_nT_n=F_n(t),\qquad \text{wave: } T_n''+c^2\lambda_nT_n=F_n(t)\]`,
+   s:[R`Find the eigenfunctions from the homogeneous equation and stop; do <b>not</b> solve for \(T\) there.`,
+      R`Expand the source and the initial data in the \(X_n\).`,
+      R`Solve each ODE. Useful facts: \(T'+aT=q\Rightarrow T=Ce^{-at}+\frac qa\); \(T''+\omega_0^2T=\cos\omega t\) has particular solution \(\frac{\cos\omega t}{\omega_0^2-\omega^2}\) when \(\omega\neq\omega_0\) and \(\frac{t\sin\omega_0t}{2\omega_0}\) when \(\omega=\omega_0\).`],
+   x:[R`Forgetting \(n=0\) in Neumann problems; its ODE is \(T_0'=F_0\) or \(T_0''=F_0\).`]},
+  {c:'ex',k:'Section 6.5 · Tutorial 8',t:'Resonance',
+   f:R`\[u_{tt}-u_{xx}=\cos(2\pi x)\cos(\omega t),\quad u_x(0,t)=u_x(1,t)=0,\quad u(x,0)=\cos^2\pi x,\ u_t(x,0)=2\cos2\pi x\]`,
+   d:R`Only \(n=0,2\) survive: \(T_0=\tfrac12\) and \(T_2''+4\pi^2T_2=\cos\omega t\), \(T_2(0)=\tfrac12\), \(T_2'(0)=2\). For \(\omega\neq2\pi\): \[T_2=\Big(\tfrac12-\tfrac1{4\pi^2-\omega^2}\Big)\cos2\pi t+\tfrac1\pi\sin2\pi t+\tfrac{\cos\omega t}{4\pi^2-\omega^2}\] which is bounded. For \(\omega=2\pi\): \(T_2=\tfrac12\cos2\pi t+\tfrac{t+4}{4\pi}\sin2\pi t\), unbounded.`,
+   n:R`Resonance happens when the forcing frequency equals a natural frequency \(c\sqrt{\lambda_n}\) of a mode that the source actually excites.`},
+  {w:'resonance'},
+  {c:'met',k:'Method · Section 6.6',t:'Non-homogeneous boundary conditions',
+   f:R`\[w(x,t)=\alpha(t)+x\,\frac{\beta(t)-\alpha(t)}L,\qquad v=u-w\]`,
+   d:R`For \(u(0,t)=\alpha(t)\), \(u(L,t)=\beta(t)\). The general ansatz is \(w=(a_1x^2+b_1x+c_1)\alpha+(a_2x^2+b_2x+c_2)\beta\); choose the coefficients so \(w\) meets the boundary conditions. The problem for \(v\): \[v_t-kv_{xx}=F-\alpha'-x\tfrac{\beta'-\alpha'}L,\quad v(x,0)=f-\alpha(0)-x\tfrac{\beta(0)-\alpha(0)}L,\quad v(0,t)=v(L,t)=0.\]`,
+   x:[R`Separating variables before the boundary conditions are homogeneous.`]},
+  {sec:'Proofs'},
+  {c:'thm',k:'Theorems 6.1–6.3 · Corollary 6.4',t:'Is the series a classical solution?',
+   d:R`A uniformly convergent series of continuous functions is continuous. If the series converges pointwise and the series of derivatives converges uniformly, you may differentiate term by term. <b>Weierstrass M-test</b>: \(|f_n|\le M_n\) on \(D\) with \(\sum M_n\lt\infty\) gives uniform convergence. For the heat series: it is \(C^\infty\) for \(t\gt0\), and continuous up to \(t=0\) when \(\sum|A_n|\lt\infty\).`,
+   r:[R`Riemann–Lebesgue gives \(|A_n|\le M\)`,R`On \(t\ge\varepsilon\), bound each term and its derivatives by \(M(\tfrac{n\pi}L)^je^{-k(n\pi/L)^2\varepsilon}\)`,R`\(\varepsilon\) is arbitrary, so the conclusion holds for all \(t\gt0\)`],
+   x:[R`The wave equation. There is no decaying exponential; a kink in the data travels along characteristics and stays (Tutorial 7: continuous by the M-test, not differentiable).`,
+      R`Compatibility fails. The solution is then only generalized.`]},
+  {c:'thm',k:'Section 6.7',t:'Uniqueness by the energy integral',
+   f:R`\[E(t)=\tfrac12\int_0^Lw^2\,dx,\qquad E'(t)=k\,ww_x\Big|_0^L-k\int_0^Lw_x^2\,dx\le0\]`,
+   d:R`Let \(w=u_1-u_2\); it solves the homogeneous heat problem with zero data. \(E\ge0\), \(E(0)=0\), \(E'\le0\) force \(E\equiv0\), so \(w\equiv0\). For the wave equation use \(E=\tfrac12\int_0^L(w_t^2+c^2w_x^2)\,dx\), which is constant.`,
+   r:[R`Boundary conditions with \(ww_x\big|_0^L\le0\) (Dirichlet, Neumann and others)`],
+   n:R`Separation of variables proves existence only; uniqueness always needs this second argument.`}
+  ]},
+
+{ id:'laplace', acc:'ell', n:'07', title:"Laplace's equation", live:1,
+  blurb:"Green's identity, the maximum and mean value principles, polar separation in a disk or annulus, Poisson's formula, rectangles.",
+  items:[
+  {sec:'Identities and uniqueness'},
+  {c:'def',k:'Section 7',t:'Harmonic functions and the Poisson equation',
+   f:R`\[\triangle u=u_{xx}+u_{yy}=0\]`,
+   d:R`Solutions are <b>harmonic</b>. \(\triangle u=F\) is the <b>Poisson equation</b>. A time-independent solution of the heat or wave equation (a steady state) solves it. Harmonic polynomials of degree two: \(a(x^2-y^2)+bxy+\alpha x+\beta y+\gamma\).`},
+  {c:'thm',k:'Claim 7.1 · Corollary 7.2 · Lemma 7.3',t:"Green's identity and the Neumann condition",
+   f:R`\[\int_D\big(\nabla u\cdot\nabla v+v\,\triangle u\big)\,dx\,dy=\int_{\partial D}v\,\partial_nu\,ds\]`,
+   d:R`With \(v\equiv1\): \(\int_D\triangle u=\int_{\partial D}\partial_nu\,ds\). Hence a Neumann problem \(\triangle u=F\), \(\partial_nu=g\) can only have a solution when \(\int_DF\,dx\,dy=\int_{\partial D}g\,ds\).`,
+   r:[R`\(D\) bounded with piecewise smooth boundary`,R`\(u,v\in C^2(D)\cap C^1(\overline D)\)`]},
+  {c:'thm',k:'Theorems 7.4, 7.5',t:'Uniqueness for Dirichlet and Neumann',
+   d:R`Dirichlet: at most one solution in \(C^2(D)\cap C^1(\overline D)\). Neumann: any two classical solutions differ by a constant. Proof template: \(w=u_1-u_2\), put \(u=v=w\) in Green's identity, get \(\int_D|\nabla w|^2=0\), so \(w\) is constant; a Dirichlet piece of the boundary forces the constant to be zero. The same proof handles mixed conditions (Tutorial 10).`},
+  {sec:'Maximum and mean value'},
+  {c:'thm',k:'Theorem 7.6',t:'Weak maximum principle',
+   d:R`If \(D\) is bounded and \(u\in C^2(D)\cap C(\overline D)\) is harmonic, the maximum and the minimum of \(u\) on \(\overline D\) are attained on \(\partial D\). This gives Dirichlet uniqueness with no assumption on the boundary (Theorem 7.7), but only for Dirichlet data.`,
+   r:[R`\(D\) bounded`,R`\(u\) continuous up to the boundary`],
+   x:[R`The domain is unbounded: \(u=x\) on the upper half plane has no maximum at all.`]},
+  {c:'thm',k:'Theorems 7.8, 7.9',t:'Mean value principle',
+   f:R`\[u(x,y)=\frac1{2\pi}\int_0^{2\pi}u(x+R\cos\theta,\ y+R\sin\theta)\,d\theta\]`,
+   d:R`Holds for every disk \(B_R\) around \((x,y)\) contained in \(D\). Conversely, a \(C^2\) function with this property on every disk is harmonic.`},
+  {w:'disk'},
+  {c:'thm',k:'Theorem 7.10',t:'Strong maximum principle',
+   d:R`If a harmonic function on a domain \(D\) (bounded or not) attains its maximum or minimum at an interior point, it is constant.`,
+   n:R`Exam pattern "find the max and where": the weak principle sends you to the boundary; compute \(u\) on every boundary piece; the strong principle shows a non-constant \(u\) has no interior extremum, so your list of boundary points is complete.`},
+  {sec:'Solving'},
+  {c:'thm',k:'Formulas (22), (23)',t:'Separation in polar coordinates',
+   f:R`\[w(r,\theta)=C_0+D_0\ln r+\sum_{n=1}^\infty\big(C_nr^n+D_nr^{-n}\big)\big(A_n\cos n\theta+B_n\sin n\theta\big)\]`,
+   d:R`From \(\triangle w=w_{rr}+\frac1rw_r+\frac1{r^2}w_{\theta\theta}\), a periodic problem for \(\Theta\) (\(\lambda_n=n^2\)) and the Euler equation \(r^2R''+rR'-n^2R=0\). <b>Disk</b>: continuity at the origin removes \(\ln r\) and \(r^{-n}\). <b>Annulus</b>: keep everything. <b>Exterior, bounded at infinity</b>: the \(r^n\) terms vanish.`,
+   n:R`On a circle, \(xu_x+yu_y=r\,u_r\), so such a condition is a condition on \(u_r\).`},
+  {c:'thm',k:'Formula (24) · Theorem 7.11',t:"Disk coefficients and Poisson's formula",
+   f:R`\[A_n=\frac1{\pi a^n}\int_0^{2\pi}h(\varphi)\cos n\varphi\,d\varphi,\qquad w(r,\theta)=\frac1{2\pi}\int_0^{2\pi}\frac{a^2-r^2}{a^2-2ar\cos(\theta-\varphi)+r^2}\,h(\varphi)\,d\varphi\]`,
+   d:R`\(B_n\) is the same with \(\sin n\varphi\). The solution is \(C^\infty\) inside the disk for piecewise continuous \(h\), and continuous on the closed disk when the coefficient series converges absolutely. Every harmonic function is therefore \(C^\infty\) (Corollary 7.12).`,
+   n:R`The value at the centre is the average of the boundary data: \(w(0)=\frac{A_0}2\).`},
+  {c:'met',k:'Method · Tutorial 9',t:'Dirichlet problem in a rectangle',
+   f:R`\[v=\sum_{n=1}^\infty\big(A_n\sinh nx+B_n\sinh n(\pi-x)\big)\sin ny\]`,
+   s:[R`You need two opposite sides with homogeneous conditions; that direction carries the Sturm–Liouville problem.`,
+      R`In the other direction \(X''-n^2X=0\). Choose the basis \(\sinh nx,\ \sinh n(\pi-x)\) so each function vanishes at one end.`,
+      R`At \(x=0\) only \(B_n\sinh n\pi\) survives; at \(x=\pi\) only \(A_n\sinh n\pi\). Expand the remaining data in \(\sin ny\).`],
+   n:R`\(v(0,y)=v(\pi,y)=\sin y\) with zero on the other sides gives \(v=\dfrac{\sinh x+\sinh(\pi-x)}{\sinh\pi}\sin y\); its maximum is 1, attained only at \((0,\tfrac\pi2)\) and \((\pi,\tfrac\pi2)\).`,
+   x:[R`No pair of opposite homogeneous sides. Correct the boundary data first; the equation may become non-homogeneous.`]},
+  {c:'thm',k:'Theorem 7.14',t:'Maximum principle for the heat equation',
+   f:R`\[\partial_P=\big([a,b]\times\{0\}\big)\cup\big(\{a\}\times[0,T]\big)\cup\big(\{b\}\times[0,T]\big)\]`,
+   d:R`For \(u_t-ku_{xx}=0\) on \(a\lt x\lt b\) with \(u(a,t)=u(b,t)=0\), the maximum over the rectangle \(0\le t\le T\) is attained on the <b>parabolic boundary</b>: the base and the two sides, not the top.`}
+  ]},
+
+{ id:'finite-differences', acc:'ok', n:'08', title:'Finite differences', live:1,
+  blurb:'Difference quotients, the explicit heat scheme, the five-point Laplace scheme, Jacobi and Gauss–Seidel, symmetry reductions.',
+  items:[
+  {sec:'Discretise'},
+  {c:'def',k:'Section 8.1',t:'Difference quotients',
+   f:R`\[u_x\sim\frac{U_{i+1,j}-U_{i,j}}{\Delta x},\qquad u_x\sim\frac{U_{i+1,j}-U_{i-1,j}}{2\Delta x},\qquad u_{xx}\sim\frac{U_{i+1,j}-2U_{i,j}+U_{i-1,j}}{(\Delta x)^2}\]`,
+   d:R`Grid values \(U_{i,j}=u(i\Delta x,j\Delta y)\). Forward, backward \(\big(\frac{U_{i,j}-U_{i-1,j}}{\Delta x}\big)\) and the more accurate central difference; the second difference for \(u_{xx}\), \(u_{yy}\).`,
+   n:R`\(u_x=u\), \(u(0,y)=f(y)\) with forward differences: \(U_{i,j}=(1+h)^if(jh)\to f(y)e^x\) as \(h\to0\).`},
+  {c:'thm',k:'Section 8.2',t:'Explicit scheme for the heat equation',
+   f:R`\[U_{i,n+1}=U_{i,n}+\alpha\big(U_{i+1,n}-2U_{i,n}+U_{i-1,n}\big),\qquad \alpha=\frac{k\,\Delta t}{(\Delta x)^2}\]`,
+   d:R`With \(U_{i,0}=f(x_i)\) and \(U_{0,n}=U_{N,n}=0\). Each time level is computed from the previous one.`},
+  {c:'thm',k:'Scheme (25) · Theorems 8.1, 8.2',t:'Five-point scheme for Laplace',
+   f:R`\[U_{i,j}=\frac{U_{i-1,j}+U_{i+1,j}+U_{i,j-1}+U_{i,j+1}}4\qquad(\Delta x=\Delta y,\ F\equiv0)\]`,
+   d:R`Every interior value is the average of its four neighbours: a discrete mean value principle. If \(U\) attains an interior maximum it is constant. On a bounded grid the scheme has exactly one solution: uniqueness from the maximum principle, existence because a linear system whose homogeneous version has only the zero solution is invertible.`},
+  {w:'relax'},
+  {sec:'Solve'},
+  {c:'met',k:'Method · Section 8.5 · Tutorial 11',t:'A grid question from start to finish',
+   s:[R`Draw the grid, write in the boundary values; the unknowns are the interior points.`,
+      R`Reduce by symmetry (it follows from uniqueness): even about a midline means equal values, odd means opposite values and zero on the line.`,
+      R`For each unknown write \(4U=\) sum of its four neighbours.`,
+      R`Solve directly, or iterate from \(U^0=0\). <b>Jacobi</b> uses only the previous sweep. <b>Gauss–Seidel</b> uses each neighbour's newest value and converges faster.`,
+      R`Neumann side: add a row of ghost points mirrored across the boundary.`,
+      R`Compare with the separation-of-variables solution at the grid points.`],
+   n:R`\(4\times4\) grid on \((0,\pi)^2\) with \(u=\sin x\) on top and bottom: all four unknowns equal \(\tfrac12\sin\tfrac\pi3\). Jacobi gives \(\tfrac14,\tfrac38,\tfrac7{16},\dots\) times \(\sin\tfrac\pi3\); the exact solution gives about \(0.45\sin\tfrac\pi3\). Tutorial 11: \(a=\tfrac{47}{55},\ b=\tfrac7{11},\ c=\tfrac{18}{55}\).`}
+  ]}
+];
+
+const MAP = [
+ ['Solve \\(au_x+bu_y=c\\) with data on a curve','Characteristics: check \\(J\\), solve the system, invert \\(s,t\\)','first-order'],
+ ['How many solutions? For which data is there one?','\\(J\\); if \\(J=0\\), rank of the extended matrix','first-order'],
+ ['Find two, or infinitely many, solutions','A crossing helper curve that satisfies transversality','first-order'],
+ ['Type, canonical form, general solution of a second-order equation','\\(\\delta=b^2-ac\\), the characteristic ODE, the chain rule','classification'],
+ ['Wave equation on the whole line, with or without a source',"d'Alembert, or correct with a particular solution",'wave'],
+ ['Where is the solution continuous or twice differentiable?','Characteristics \\(x\\pm ct=x_0\\) from the rough points of \\(f,g\\)','wave'],
+ ['Wave equation on \\(x>0\\)','Odd or even reflection; parallelogram rule for the homogeneous equation','wave'],
+ ['Eigenvalues, expansions, type of convergence','Cases on \\(\\lambda\\); \\(c_n=\\langle f,v_n\\rangle/\\langle v_n,v_n\\rangle\\); Theorem 5.6','sturm-liouville'],
+ ['Heat or wave on a finite interval','Separation of variables','separation'],
+ ['Forcing term; for which \\(\\omega\\) is the solution bounded?','\\(u=\\sum T_n(t)X_n(x)\\), an ODE per mode, resonance','separation'],
+ ['Non-homogeneous boundary conditions','Correction function \\(w\\), then \\(v=u-w\\)','separation'],
+ ['Is the solution classical, continuous, differentiable?','M-test with Theorems 6.1, 6.2; compatibility conditions','separation'],
+ ['Prove uniqueness','Heat and wave: energy integral. Laplace: Green or the maximum principle','separation'],
+ ['Laplace in a disk, annulus or rectangle','Polar separation; \\(\\sinh\\) basis','laplace'],
+ ['Maximum and minimum of a solution; value at the centre','Weak then strong maximum principle; mean value principle','laplace'],
+ ['Does this Neumann problem have a solution?','\\(\\int_DF=\\int_{\\partial D}g\\)','laplace'],
+ ['Numerical approximation on a grid','Five-point scheme, symmetry, Jacobi or Gauss–Seidel','finite-differences']
+];
+</script>
+<script>
+(function(){
+'use strict';
+const $ = (s, r) => (r || document).querySelector(s);
+const cssv = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------- canvas helpers ---------- */
+function setup(c, h){
+  const r = window.devicePixelRatio || 1, w = c.clientWidth || 600;
+  c.width = Math.round(w*r); c.height = Math.round(h*r); c.style.height = h + 'px';
+  const g = c.getContext('2d'); g.setTransform(r,0,0,r,0,0); g.clearRect(0,0,w,h);
+  return { g, w, h };
+}
+function scale(w, h, xr, yr, pad){
+  pad = pad == null ? 10 : pad;
+  return { X: x => pad + (x-xr[0])/(xr[1]-xr[0])*(w-2*pad), Y: y => h-pad-(y-yr[0])/(yr[1]-yr[0])*(h-2*pad),
+           ix: px => xr[0] + (px-pad)/(w-2*pad)*(xr[1]-xr[0]), iy: py => yr[0] + (h-pad-py)/(h-2*pad)*(yr[1]-yr[0]) };
+}
+function curve(g, fn, xr, S, color, lw, dash, n){
+  n = n || 500; g.beginPath();
+  for (let i=0;i<=n;i++){ const x = xr[0]+(xr[1]-xr[0])*i/n, y = fn(x); i ? g.lineTo(S.X(x),S.Y(y)) : g.moveTo(S.X(x),S.Y(y)); }
+  g.strokeStyle = color; g.lineWidth = lw || 2; g.setLineDash(dash || []); g.lineJoin = 'round'; g.stroke(); g.setLineDash([]);
+}
+function seg(g, x1,y1,x2,y2, color, lw, dash){ g.beginPath(); g.moveTo(x1,y1); g.lineTo(x2,y2); g.strokeStyle=color; g.lineWidth=lw||1; g.setLineDash(dash||[]); g.stroke(); g.setLineDash([]); }
+function label(g, t, x, y, color, align){ g.fillStyle = color || cssv('--sub'); g.font = '11px IBM Plex Mono, monospace'; g.textAlign = align || 'left'; g.fillText(t, x, y); }
+const fmt = (v, d) => (Math.abs(v) < 5e-4 ? 0 : v).toFixed(d == null ? 3 : d);
+
+/* ---------- widgets ---------- */
+const W = {};
+const shapes = {
+  box: x => Math.abs(x) <= 1 ? 1 : 0,
+  tent: x => Math.max(0, 1-Math.abs(x)),
+  bump: x => Math.exp(-3*x*x)
+};
+
+W.trans = {
+  html: `<div class="wt"><b>Transversality, live</b><span>experiment</span></div>
+  <p>The dark line is the projection of the initial curve; the coloured lines are projected characteristics leaving it. Rotate either one and watch what happens as they become parallel.</p>
+  <canvas id="w-trans"></canvas>
+  <div class="ctl"><label>characteristic direction (a,b) <input type="range" id="tr-phi" min="0" max="180" value="50"></label>
+  <label>initial curve direction (f′,g′) <input type="range" id="tr-psi" min="0" max="180" value="0"></label></div>
+  <div class="read" id="tr-read"></div>`,
+  init(){ const d = () => this.draw(); $('#tr-phi').oninput = d; $('#tr-psi').oninput = d; },
+  draw(){
+    const { g, w, h } = setup($('#w-trans'), 240);
+    const phi = +$('#tr-phi').value*Math.PI/180, psi = +$('#tr-psi').value*Math.PI/180;
+    const a = Math.cos(phi), b = Math.sin(phi), fp = Math.cos(psi), gp = Math.sin(psi);
+    const J = a*gp - b*fp, cx = w/2, cy = h/2, L = w;
+    const flat = Math.abs(J) < 0.03;
+    for (let k=-9;k<=9;k++){
+      const px = cx + k*30*fp, py = cy - k*30*gp;
+      seg(g, px - L*a, py + L*b, px + L*a, py - L*b, flat ? cssv('--par') : cssv('--hyp'), 1.3);
+    }
+    seg(g, cx - L*fp, cy + L*gp, cx + L*fp, cy - L*gp, cssv('--ink'), 3);
+    for (let k=-9;k<=9;k++){ g.beginPath(); g.arc(cx + k*30*fp, cy - k*30*gp, 3, 0, 7); g.fillStyle = cssv('--ink'); g.fill(); }
+    $('#tr-read').innerHTML = 'a = ' + fmt(a,2) + ', b = ' + fmt(b,2) + ', f′ = ' + fmt(fp,2) + ', g′ = ' + fmt(gp,2) + ' &nbsp;→&nbsp; <b>J = a·g′ − b·f′ = ' + fmt(J,3) + '</b><br>' +
+      (flat ? 'J = 0: the characteristics run along the curve and no longer sweep out a surface. Now check the extended matrix: dependent rows give infinitely many solutions, independent rows give none.'
+            : 'J ≠ 0: the characteristics cross the curve and fill a neighbourhood of it. Theorem 2.4 gives exactly one local solution.');
+  }
+};
+
+W.classify = {
+  html: `<div class="wt"><b>Classifier</b><span>experiment</span></div>
+  <p>Type the three principal coefficients exactly as they appear in the equation. The tool halves the middle one for you and draws the real characteristic families.</p>
+  <div class="ctl"><label><input type="number" id="cl-a" value="1" step="0.5"> u<sub>xx</sub> +</label>
+  <label><input type="number" id="cl-B" value="-6" step="0.5"> u<sub>xy</sub> +</label>
+  <label><input type="number" id="cl-c" value="9" step="0.5"> u<sub>yy</sub></label>
+  <select id="cl-pre" aria-label="Preset equations"><option value="">presets…</option><option value="1,0,-1">wave: u_xx − u_yy</option><option value="1,0,0">heat: u_xx (+ u_y)</option><option value="1,0,1">Laplace: u_xx + u_yy</option><option value="1,-6,9">Tutorial 4: u_xx − 6u_xy + 9u_yy</option><option value="1,4,0">Tutorial 4: u_xx + 4u_xy</option></select></div>
+  <canvas id="w-classify"></canvas>
+  <div class="read" id="cl-read"></div>`,
+  init(){ const d = () => this.draw(); ['#cl-a','#cl-B','#cl-c'].forEach(s => $(s).oninput = d);
+    $('#cl-pre').onchange = e => { if (!e.target.value) return; const v = e.target.value.split(','); $('#cl-a').value = v[0]; $('#cl-B').value = v[1]; $('#cl-c').value = v[2]; d(); }; },
+  draw(){
+    const { g, w, h } = setup($('#w-classify'), 200);
+    const a = +$('#cl-a').value || 0, B = +$('#cl-B').value || 0, c = +$('#cl-c').value || 0, b = B/2, dl = b*b - a*c;
+    let type, col, dirs = [], canon;
+    if (a === 0 && b === 0 && c === 0){ $('#cl-read').textContent = 'No second-order part: this is not a second-order equation.'; return; }
+    if (dl > 1e-12){ type = 'hyperbolic'; col = '--hyp'; canon = 'v_st + lower-order terms';
+      dirs = a !== 0 ? [[a, b+Math.sqrt(dl)], [a, b-Math.sqrt(dl)]] : [[0,1],[2*b,c]]; }
+    else if (dl < -1e-12){ type = 'elliptic'; col = '--ell'; canon = 'v_ss + v_tt + lower-order terms'; }
+    else { type = 'parabolic'; col = '--par'; canon = 'v_tt + lower-order terms'; dirs = a !== 0 ? [[a,b]] : [[0,1]]; }
+    const cx = w/2, cy = h/2, L = w;
+    dirs.forEach((d, i) => { const n = Math.hypot(d[0], d[1]), ux = d[0]/n, uy = d[1]/n;
+      for (let k=-12;k<=12;k++){ const px = cx - k*26*uy, py = cy - k*26*ux; seg(g, px-L*ux, py+L*uy, px+L*ux, py-L*uy, cssv(i ? '--sub' : col), 1.3, i ? [5,4] : []); } });
+    if (!dirs.length) label(g, 'no real characteristics: dy/dx is complex', cx, cy+4, cssv('--ell'), 'center');
+    const sl = dirs.map(d => d[0] === 0 ? 'x = const' : 'dy/dx = ' + fmt(d[1]/d[0],3)).join(' &nbsp;and&nbsp; ');
+    $('#cl-read').innerHTML = 'a = ' + a + ', <b>b = ' + b + '</b> (half of ' + B + '), c = ' + c + ' &nbsp;→&nbsp; δ = b² − ac = <b>' + fmt(dl,3) + '</b><br>Type: <b style="color:var(' + col + ')">' + type + '</b> · canonical principal part: ' + canon +
+      (dirs.length ? '<br>Characteristics: ' + sl : '<br>Take s = Re φ, t = Im φ of the complex solution.');
+  }
+};
+
+W.dalembert = {
+  t: 0, on: false, raf: 0,
+  html: `<div class="wt"><b>d'Alembert, animated</b><span>experiment</span></div>
+  <p>With g = 0 the initial profile splits into two half-height copies. Switch to a half line to watch the reflection: a fixed end flips the wave, a free end does not.</p>
+  <canvas id="w-dal"></canvas>
+  <div class="ctl"><button class="pri" id="da-play">▶ Play</button><button id="da-reset">Reset</button>
+  <label>profile <select id="da-shape"><option value="box">box</option><option value="tent">tent</option><option value="bump" selected>bump</option></select></label>
+  <label>domain <select id="da-dom"><option value="line">whole line</option><option value="dir">x &gt; 0, u(0,t) = 0</option><option value="neu">x &gt; 0, uₓ(0,t) = 0</option></select></label>
+  <label>c <input type="range" id="da-c" min="0.5" max="3" step="0.5" value="1"></label></div>
+  <div class="read" id="da-read"></div>`,
+  init(){
+    const d = () => this.draw();
+    $('#da-play').onclick = () => { this.on ? this.stop() : this.play(); };
+    $('#da-reset').onclick = () => { this.stop(); this.t = 0; d(); };
+    ['#da-shape','#da-dom'].forEach(s => $(s).onchange = () => { this.t = 0; d(); });
+    $('#da-c').oninput = d;
+  },
+  play(){ this.on = true; $('#da-play').textContent = '❚❚ Pause'; let last = performance.now();
+    const step = now => { if (!this.on) return; this.t += (now-last)/1000*1.1; last = now; const c = +$('#da-c').value;
+      if (this.t*c > 9) this.t = 0; this.draw(); this.raf = requestAnimationFrame(step); };
+    this.raf = requestAnimationFrame(step); },
+  stop(){ this.on = false; cancelAnimationFrame(this.raf); const b = $('#da-play'); if (b) b.textContent = '▶ Play'; },
+  draw(){
+    const { g, w, h } = setup($('#w-dal'), 230);
+    const dom = $('#da-dom').value, c = +$('#da-c').value, f0 = shapes[$('#da-shape').value], t = this.t;
+    const half = dom !== 'line', x0 = half ? 3.5 : 0, xr = half ? [0,10] : [-7,7];
+    const f = x => f0(x - x0);
+    const ext = dom === 'line' ? f : dom === 'dir' ? (x => x >= 0 ? f(x) : -f(-x)) : (x => f(Math.abs(x)));
+    const S = scale(w, h, xr, [-1.15, 1.3], 14);
+    seg(g, S.X(xr[0]), S.Y(0), S.X(xr[1]), S.Y(0), cssv('--line'), 1);
+    if (half) seg(g, S.X(0), 8, S.X(0), h-8, cssv('--ink'), 3);
+    curve(g, x => 0.5*ext(x - c*t), xr, S, cssv('--par'), 1.4, [5,4]);
+    curve(g, x => 0.5*ext(x + c*t), xr, S, cssv('--ell'), 1.4, [5,4]);
+    curve(g, x => 0.5*(ext(x + c*t) + ext(x - c*t)), xr, S, cssv('--hyp'), 2.8);
+    label(g, '½f(x − ct) →', w-16, 18, cssv('--par'), 'right'); label(g, '← ½f(x + ct)', 16 + (half ? 8 : 0), 18, cssv('--ell'));
+    $('#da-read').innerHTML = 't = <b>' + fmt(t,2) + '</b>, c = ' + c + ', ct = ' + fmt(c*t,2) + ' &nbsp;·&nbsp; ' +
+      (dom === 'line' ? 'u = ½[f(x+ct) + f(x−ct)]' : dom === 'dir' ? 'odd extension: the reflected pulse comes back <b>inverted</b>, so u(0,t) = 0 always' : 'even extension: the reflected pulse comes back <b>upright</b>, so uₓ(0,t) = 0 always');
+  }
+};
+
+W.cone = {
+  p: { x: 1, t: 2.4 },
+  html: `<div class="wt"><b>Domain of dependence</b><span>experiment</span></div>
+  <p>Drag the point. Its value depends on f at the two feet of the characteristics, on g along the base, and on the source F over the shaded triangle.</p>
+  <canvas id="w-cone" style="cursor:grab"></canvas>
+  <div class="ctl"><label>c <input type="range" id="co-c" min="0.5" max="3" step="0.25" value="1"></label></div>
+  <div class="read" id="co-read"></div>`,
+  init(){
+    const cv = $('#w-cone'); let drag = false;
+    const move = e => { const r = cv.getBoundingClientRect(); const S = this.S; if (!S) return;
+      this.p.x = Math.max(-5.5, Math.min(5.5, S.ix(e.clientX - r.left))); this.p.t = Math.max(0.15, Math.min(3.8, S.iy(e.clientY - r.top))); this.draw(); };
+    cv.onpointerdown = e => { drag = true; cv.setPointerCapture(e.pointerId); move(e); };
+    cv.onpointermove = e => { if (drag) move(e); };
+    cv.onpointerup = () => { drag = false; };
+    $('#co-c').oninput = () => this.draw();
+  },
+  draw(){
+    const { g, w, h } = setup($('#w-cone'), 240);
+    const c = +$('#co-c').value, xr = [-6,6], S = this.S = scale(w, h, xr, [-0.35, 4], 12), p = this.p;
+    for (let k=-14;k<=14;k++){ curve(g, x => (x - k)/c, xr, S, cssv('--line'), 1, null, 2); curve(g, x => -(x - k)/c, xr, S, cssv('--line'), 1, null, 2); }
+    seg(g, S.X(-6), S.Y(0), S.X(6), S.Y(0), cssv('--ink'), 2);
+    const l = p.x - c*p.t, r = p.x + c*p.t;
+    g.beginPath(); g.moveTo(S.X(p.x), S.Y(p.t)); g.lineTo(S.X(l), S.Y(0)); g.lineTo(S.X(r), S.Y(0)); g.closePath();
+    g.fillStyle = cssv('--hyp-soft'); g.fill(); g.strokeStyle = cssv('--hyp'); g.lineWidth = 2; g.stroke();
+    seg(g, S.X(l), S.Y(0), S.X(r), S.Y(0), cssv('--par'), 4);
+    g.beginPath(); g.arc(S.X(p.x), S.Y(p.t), 6, 0, 7); g.fillStyle = cssv('--hyp'); g.fill();
+    label(g, '(x,t)', S.X(p.x)+10, S.Y(p.t)-6, cssv('--ink'));
+    label(g, 'x − ct', S.X(l), S.Y(0)+14, cssv('--par'), 'center'); label(g, 'x + ct', S.X(r), S.Y(0)+14, cssv('--par'), 'center');
+    label(g, 't', 14, 14); label(g, 'x', w-14, S.Y(0)-6, null, 'right');
+    $('#co-read').innerHTML = '(x, t) = (' + fmt(p.x,2) + ', ' + fmt(p.t,2) + '), c = ' + c + ' &nbsp;→&nbsp; dependence interval <b>[' + fmt(l,2) + ', ' + fmt(r,2) + ']</b><br>A kink of f at x₀ is felt exactly on the two lines x ± ct = x₀.';
+  }
+};
+
+W.series = {
+  html: `<div class="wt"><b>Eigenfunction expansion, term by term</b><span>experiment</span></div>
+  <p>Raise N and compare with Theorem 5.6: where does the partial sum settle, what happens at a jump, and what happens at the endpoints?</p>
+  <canvas id="w-series"></canvas>
+  <div class="ctl"><label>function <select id="se-f"><option value="one">f = 1 in sin(nπx)</option><option value="step">step in cos(nπx)</option><option value="tent">tent in sin(nπx)</option></select></label>
+  <label>N <input type="range" id="se-n" min="1" max="60" value="7"></label></div>
+  <div class="read" id="se-read"></div>`,
+  init(){ const d = () => this.draw(); $('#se-f').onchange = d; $('#se-n').oninput = d; },
+  draw(){
+    const { g, w, h } = setup($('#w-series'), 230);
+    const kind = $('#se-f').value, N = +$('#se-n').value, P = Math.PI, xr = [0,1], S = scale(w, h, xr, [-0.3, 1.35], 14);
+    let f, sN, msg;
+    if (kind === 'one'){ f = () => 1;
+      sN = x => { let s = 0; for (let n=1;n<=N;n++) s += 2*(1-Math.cos(n*P))/(n*P)*Math.sin(n*P*x); return s; };
+      msg = 'Converges to 1 on (0,1) but equals 0 at both ends. f breaks the boundary conditions X(0)=X(1)=0, the limit is discontinuous on [0,1], so the convergence is <b>not uniform</b> (the overshoot near the ends never shrinks).'; }
+    else if (kind === 'step'){ f = x => x < 0.5 ? 1 : 0;
+      sN = x => { let s = 0.5; for (let n=1;n<=N;n++) s += 2/(n*P)*Math.sin(n*P/2)*Math.cos(n*P*x); return s; };
+      msg = 'At the jump x = ½ every partial sum passes through <b>½</b>, the average of the one-sided limits. Not uniform: the limit is discontinuous.'; }
+    else { f = x => x < 0.5 ? x : 1-x;
+      sN = x => { let s = 0; for (let n=1;n<=N;n++) s += 4/(n*n*P*P)*Math.sin(n*P/2)*Math.sin(n*P*x); return s; };
+      msg = 'f is continuous, piecewise C¹ and satisfies both boundary conditions, so the convergence is <b>uniform</b>. Coefficients decay like 1/n².'; }
+    seg(g, S.X(0), S.Y(0), S.X(1), S.Y(0), cssv('--line'), 1);
+    curve(g, f, xr, S, cssv('--sub'), 1.6, [6,4], 800);
+    curve(g, sN, xr, S, cssv('--ok'), 2.4, null, 800);
+    label(g, 'x = 0', S.X(0), h-2, null, 'left'); label(g, 'x = L', S.X(1), h-2, null, 'right');
+    $('#se-read').innerHTML = 'N = <b>' + N + '</b> terms · S_N(0) = ' + fmt(sN(0),3) + ', S_N(½) = ' + fmt(sN(0.5),3) + '<br>' + msg;
+  }
+};
+
+W.heatwave = {
+  on: false, raf: 0,
+  html: `<div class="wt"><b>Same data, two equations</b><span>experiment</span></div>
+  <p>Tent initial data on [0,1] with fixed ends, 80 modes. The heat equation rounds the corner off at once; the wave equation carries it along the characteristics for ever.</p>
+  <canvas id="w-hw"></canvas>
+  <div class="ctl"><label>equation <select id="hw-eq"><option value="heat">heat: uₜ = uₓₓ</option><option value="wave">wave: uₜₜ = uₓₓ</option></select></label>
+  <label>t <input type="range" id="hw-t" min="0" max="1000" value="0"></label><button class="pri" id="hw-play">▶ Play</button></div>
+  <div class="read" id="hw-read"></div>`,
+  init(){ const d = () => this.draw(); $('#hw-eq').onchange = () => { $('#hw-t').value = 0; d(); }; $('#hw-t').oninput = d;
+    $('#hw-play').onclick = () => { this.on ? this.stop() : this.play(); }; },
+  play(){ this.on = true; $('#hw-play').textContent = '❚❚ Pause';
+    const step = () => { if (!this.on) return; const s = $('#hw-t'); s.value = (+s.value + 3) % 1001; this.draw(); this.raf = requestAnimationFrame(step); };
+    this.raf = requestAnimationFrame(step); },
+  stop(){ this.on = false; cancelAnimationFrame(this.raf); const b = $('#hw-play'); if (b) b.textContent = '▶ Play'; },
+  draw(){
+    const { g, w, h } = setup($('#w-hw'), 220);
+    const heat = $('#hw-eq').value === 'heat', P = Math.PI, t = +$('#hw-t').value/1000*(heat ? 0.25 : 2);
+    const xr = [0,1], S = scale(w, h, xr, [-0.6, 0.62], 14);
+    const u = x => { let s = 0; for (let n=1;n<=79;n+=2){ const A = 4/(n*n*P*P)*Math.sin(n*P/2); s += A*(heat ? Math.exp(-n*n*P*P*t) : Math.cos(n*P*t))*Math.sin(n*P*x); } return s; };
+    seg(g, S.X(0), S.Y(0), S.X(1), S.Y(0), cssv('--line'), 1);
+    curve(g, x => x < 0.5 ? x : 1-x, xr, S, cssv('--sub'), 1.2, [5,4]);
+    curve(g, u, xr, S, cssv(heat ? '--par' : '--hyp'), 2.8, null, 600);
+    $('#hw-read').innerHTML = 't = <b>' + fmt(t,3) + '</b> · u(½, t) = ' + fmt(u(0.5),4) + '<br>' +
+      (heat ? 'Each mode is damped by e<sup>−n²π²t</sup>: high modes die first, so the solution is C<sup>∞</sup> for every t &gt; 0 (Corollary 6.4).'
+            : 'Each mode only oscillates, cos(nπt): nothing is damped, the corners persist and the motion is periodic with period 2L/c = 2.');
+  }
+};
+
+W.resonance = {
+  html: `<div class="wt"><b>Resonance dial</b><span>experiment</span></div>
+  <p>The coefficient T₂(t) of the forced problem above. Slide ω toward the natural frequency 2π and watch the beats lengthen until the envelope grows without bound.</p>
+  <canvas id="w-res"></canvas>
+  <div class="ctl"><label>ω = <span id="re-val">1.50π</span> <input type="range" id="re-w" min="0.5" max="3.5" step="0.01" value="1.5"></label><button id="re-snap">Set ω = 2π</button></div>
+  <div class="read" id="re-read"></div>`,
+  init(){ const d = () => this.draw(); $('#re-w').oninput = d; $('#re-snap').onclick = () => { $('#re-w').value = 2; d(); }; },
+  draw(){
+    const { g, w, h } = setup($('#w-res'), 220);
+    const m = +$('#re-w').value, P = Math.PI, om = m*P, res = Math.abs(m-2) < 0.004, D = 4*P*P - om*om, tr = [0,24];
+    const T = t => res ? 0.5*Math.cos(2*P*t) + (t+4)/(4*P)*Math.sin(2*P*t) : (0.5 - 1/D)*Math.cos(2*P*t) + Math.sin(2*P*t)/P + Math.cos(om*t)/D;
+    let mx = 0; for (let i=0;i<=1200;i++) mx = Math.max(mx, Math.abs(T(tr[1]*i/1200)));
+    const yr = Math.max(1.2, mx*1.08), S = scale(w, h, tr, [-yr, yr], 14);
+    seg(g, S.X(0), S.Y(0), S.X(tr[1]), S.Y(0), cssv('--line'), 1);
+    if (res){ curve(g, t => (t+4)/(4*P), tr, S, cssv('--sub'), 1, [4,4]); curve(g, t => -(t+4)/(4*P), tr, S, cssv('--sub'), 1, [4,4]); }
+    curve(g, T, tr, S, cssv(res ? '--par' : '--hyp'), 1.8, null, 1600);
+    label(g, 't = 0', S.X(0), h-2); label(g, 't = 24', S.X(24), h-2, null, 'right');
+    $('#re-val').textContent = m.toFixed(2) + 'π';
+    $('#re-read').innerHTML = res ? '<b>ω = 2π: resonance.</b> T₂ = ½cos 2πt + (t+4)/(4π)·sin 2πt. The amplitude grows linearly, so u is unbounded.'
+      : '4π² − ω² = ' + fmt(D,3) + ' · max |T₂| on [0,24] ≈ <b>' + fmt(mx,2) + '</b> · bounded for all time' + (Math.abs(m-2) < 0.15 ? ', but the 1/(4π² − ω²) factor is already large.' : '.');
+  }
+};
+
+W.disk = {
+  field: null, key: '',
+  html: `<div class="wt"><b>Harmonic function in the unit disk</b><span>experiment</span></div>
+  <p>Move the pointer inside the disk. The readout compares u at that point with its average over the circle drawn around it. Extreme values are ringed on the boundary.</p>
+  <canvas id="w-disk"></canvas>
+  <div class="ctl"><label>boundary data <select id="di-h"><option value="a">h = sin²θ (u = y² on the circle)</option><option value="b">h = sin θ on top, 0 below</option><option value="c">h = cos 3θ</option></select></label></div>
+  <div class="read" id="di-read">Hover or touch the disk.</div>`,
+  u(kind, r, th){
+    if (kind === 'a') return (1 - r*r*Math.cos(2*th))/2;
+    if (kind === 'c') return r*r*r*Math.cos(3*th);
+    let s = 1/Math.PI + 0.5*r*Math.sin(th), rn = r;
+    for (let n=2;n<=60;n++){ rn *= r; if (n % 2 === 0) s += rn*2/(Math.PI*(1-n*n))*Math.cos(n*th); }
+    return s;
+  },
+  init(){
+    const cv = $('#w-disk');
+    $('#di-h').onchange = () => { this.probe = null; this.draw(); };
+    const mv = e => { const r = cv.getBoundingClientRect(); this.probe = { x: e.clientX - r.left, y: e.clientY - r.top }; this.draw(); };
+    cv.onpointermove = mv; cv.onpointerdown = mv;
+  },
+  draw(){
+    const { g, w, h } = setup($('#w-disk'), 320);
+    const kind = $('#di-h').value, cx = w/2, cy = h/2, Rp = 140, lo = kind === 'c' ? -1 : 0, hi = 1;
+    const dark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const key = kind + dark;
+    if (this.key !== key){
+      const M = 180, off = document.createElement('canvas'); off.width = off.height = M;
+      const og = off.getContext('2d'), im = og.createImageData(M, M);
+      const cold = dark ? [59,201,219] : [11,114,133], mid = dark ? [28,37,51] : [246,248,250], hot = dark ? [255,146,43] : [194,65,12];
+      for (let j=0;j<M;j++) for (let i=0;i<M;i++){
+        const x = (i+0.5)/M*2-1, y = 1-(j+0.5)/M*2, r = Math.hypot(x,y), k = (j*M+i)*4;
+        if (r > 1){ im.data[k+3] = 0; continue; }
+        const v = (this.u(kind, r, Math.atan2(y,x)) - lo)/(hi-lo), s = v < 0.5 ? v*2 : (v-0.5)*2, A = v < 0.5 ? cold : mid, B = v < 0.5 ? mid : hot;
+        for (let q=0;q<3;q++) im.data[k+q] = A[q] + (B[q]-A[q])*s; im.data[k+3] = 255;
+      }
+      og.putImageData(im, 0, 0); this.field = off; this.key = key;
+    }
+    g.save(); g.beginPath(); g.arc(cx, cy, Rp, 0, 7); g.clip(); g.imageSmoothingEnabled = true; g.drawImage(this.field, cx-Rp, cy-Rp, 2*Rp, 2*Rp); g.restore();
+    g.beginPath(); g.arc(cx, cy, Rp, 0, 7); g.strokeStyle = cssv('--ink'); g.lineWidth = 1.5; g.stroke();
+    let bmax = -9, bmin = 9; const hv = []; for (let i=0;i<360;i++){ const v = this.u(kind, 1, i*Math.PI/180); hv.push(v); bmax = Math.max(bmax, v); bmin = Math.min(bmin, v); }
+    hv.forEach((v, i) => { const th = i*Math.PI/180, isMax = v > bmax-1e-3, isMin = v < bmin+1e-3; if (!isMax && !isMin) return;
+      g.beginPath(); g.arc(cx + (Rp+6)*Math.cos(th), cy - (Rp+6)*Math.sin(th), 3, 0, 7); g.fillStyle = cssv(isMax ? '--par' : '--hyp'); g.fill(); });
+    label(g, 'max on boundary = ' + fmt(bmax,2), 10, 16, cssv('--par')); label(g, 'min on boundary = ' + fmt(bmin,2), 10, 32, cssv('--hyp'));
+    const p = this.probe;
+    if (p){ const x = (p.x-cx)/Rp, y = -(p.y-cy)/Rp, r = Math.hypot(x,y);
+      if (r < 0.97){ const rho = Math.min(0.4, 1-r-0.02); let m = 0; const K = 180;
+        for (let i=0;i<K;i++){ const a = 2*Math.PI*i/K, qx = x+rho*Math.cos(a), qy = y+rho*Math.sin(a); m += this.u(kind, Math.hypot(qx,qy), Math.atan2(qy,qx)); } m /= K;
+        g.beginPath(); g.arc(p.x, p.y, rho*Rp, 0, 7); g.strokeStyle = cssv('--ink'); g.lineWidth = 1.5; g.setLineDash([4,3]); g.stroke(); g.setLineDash([]);
+        g.beginPath(); g.arc(p.x, p.y, 4, 0, 7); g.fillStyle = cssv('--ink'); g.fill();
+        const val = this.u(kind, r, Math.atan2(y,x));
+        $('#di-read').innerHTML = 'point (' + fmt(x,2) + ', ' + fmt(y,2) + ') · u = <b>' + fmt(val,4) + '</b> · average over the dashed circle (R = ' + fmt(rho,2) + ') = <b>' + fmt(m,4) + '</b><br>They agree at every interior point, and u never leaves the range [' + fmt(bmin,2) + ', ' + fmt(bmax,2) + '] set on the boundary.';
+      } }
+    if (!p) $('#di-read').innerHTML = 'Hover or touch the disk. Value at the centre = average of the boundary data = <b>' + fmt(this.u(kind,0,0),4) + '</b>.';
+  }
+};
+
+W.relax = {
+  U: null, N: 4, k: 0, last: 0, timer: 0,
+  html: `<div class="wt"><b>Jacobi against Gauss–Seidel</b><span>experiment</span></div>
+  <p>Laplace on (0,π)² with u = sin x on the top and bottom sides and 0 on the left and right, starting from zero. Step through the sweeps and count how many each method needs.</p>
+  <canvas id="w-relax"></canvas>
+  <div class="ctl"><label>grid <select id="rx-n"><option value="4">4 × 4 (course example)</option><option value="7">7 × 7</option><option value="13">13 × 13</option></select></label>
+  <label>method <select id="rx-m"><option value="j">Jacobi</option><option value="gs">Gauss–Seidel</option></select></label>
+  <button class="pri" id="rx-step">Step</button><button id="rx-run">Run</button><button id="rx-reset">Reset</button></div>
+  <div class="read" id="rx-read"></div>`,
+  reset(){ const N = this.N = +$('#rx-n').value, hh = Math.PI/(N-1); this.k = 0; this.last = 0;
+    this.U = Array.from({length:N}, (_, j) => Array.from({length:N}, (_, i) => (j === 0 || j === N-1) ? Math.sin(i*hh) : 0)); },
+  sweep(){ const N = this.N, gs = $('#rx-m').value === 'gs', src = gs ? this.U : this.U.map(r => r.slice()); let ch = 0;
+    for (let j=1;j<N-1;j++) for (let i=1;i<N-1;i++){ const v = (src[j][i-1] + src[j][i+1] + src[j-1][i] + src[j+1][i])/4; ch = Math.max(ch, Math.abs(v - this.U[j][i])); this.U[j][i] = v; }
+    this.k++; this.last = ch; },
+  stop(){ clearInterval(this.timer); this.timer = 0; const b = $('#rx-run'); if (b) b.textContent = 'Run'; },
+  init(){ this.reset();
+    $('#rx-step').onclick = () => { this.sweep(); this.draw(); };
+    $('#rx-reset').onclick = () => { this.stop(); this.reset(); this.draw(); };
+    $('#rx-n').onchange = () => { this.stop(); this.reset(); this.draw(); };
+    $('#rx-m').onchange = () => { this.stop(); this.reset(); this.draw(); };
+    $('#rx-run').onclick = () => { if (this.timer){ this.stop(); return; } $('#rx-run').textContent = 'Stop';
+      this.timer = setInterval(() => { this.sweep(); this.draw(); if (this.last < 1e-6) this.stop(); }, 180); };
+  },
+  draw(){
+    const N = this.N, { g, w, h } = setup($('#w-relax'), 300), cell = Math.min(280/N, (w-20)/N), ox = (w - cell*N)/2, oy = (h - cell*N)/2;
+    const dark = document.documentElement.getAttribute('data-theme') === 'dark';
+    for (let j=0;j<N;j++) for (let i=0;i<N;i++){ const v = this.U[j][i], edge = i === 0 || j === 0 || i === N-1 || j === N-1;
+      const A = dark ? [28,37,51] : [246,248,250], B = dark ? [177,151,252] : [95,61,196];
+      g.fillStyle = 'rgb(' + A.map((a, q) => Math.round(a + (B[q]-a)*Math.min(1, v))).join(',') + ')';
+      const px = ox + i*cell, py = oy + (N-1-j)*cell; g.fillRect(px+1, py+1, cell-2, cell-2);
+      if (edge){ g.strokeStyle = cssv('--ink'); g.lineWidth = 1.5; g.strokeRect(px+1.5, py+1.5, cell-3, cell-3); }
+      if (N <= 7){ g.fillStyle = v > 0.55 ? '#fff' : cssv('--ink'); g.font = (N === 4 ? 13 : 10) + 'px IBM Plex Mono, monospace'; g.textAlign = 'center'; g.fillText(v.toFixed(3), px+cell/2, py+cell/2+4); } }
+    const s3 = Math.sin(Math.PI/3);
+    $('#rx-read').innerHTML = 'sweeps: <b>' + this.k + '</b> · largest change in the last sweep: ' + (this.k ? this.last.toExponential(2) : 'n/a') +
+      (N === 4 ? '<br>interior value a = <b>' + fmt(this.U[1][1]/s3, 4) + '</b> · sin(π/3) &nbsp;(discrete solution ½, exact solution ≈ 0.45)' : '<br>outlined cells are boundary values; interior cells relax toward the average of their four neighbours.');
+  }
+};
+
+/* ---------- hero ---------- */
+const hero = { t: 0,
+  draw(){ const c = $('#heroc'); if (!c) return; const { g, w, h } = setup(c, 210), xr = [-8,8], S = scale(w, h, xr, [-0.15, 1.15], 10), t = this.t, f = x => Math.exp(-1.4*x*x);
+    for (let k=-16;k<=16;k+=2) seg(g, S.X(k), 0, S.X(k), h, cssv('--line'), 1);
+    seg(g, S.X(-8), S.Y(0), S.X(8), S.Y(0), cssv('--line'), 1.5);
+    curve(g, x => 0.5*f(x-t), xr, S, cssv('--par'), 1.5, [5,4]); curve(g, x => 0.5*f(x+t), xr, S, cssv('--ell'), 1.5, [5,4]);
+    curve(g, x => 0.5*(f(x-t)+f(x+t)), xr, S, cssv('--hyp'), 3);
+    $('#herot').textContent = 't = ' + t.toFixed(2); },
+  run(){ if (reduce){ this.t = 1.6; this.draw(); return; } let last = performance.now();
+    const step = now => { if ($('#home').classList.contains('on')){ this.t += (now-last)/1000*1.3; if (this.t > 9) this.t = 0; this.draw(); } last = now; requestAnimationFrame(step); };
+    requestAnimationFrame(step); }
+};
+
+/* ---------- marks ---------- */
+let marks = {};
+try { marks = JSON.parse(localStorage.getItem('pde104220-marks') || '{}') || {}; } catch (e) { marks = {}; }
+const save = () => { try { localStorage.setItem('pde104220-marks', JSON.stringify(marks)); } catch (e) {} };
+const entriesOf = ch => ch.items.map((e, i) => ({ e, id: ch.id + ':' + i })).filter(o => o.e.c);
+
+/* ---------- rendering ---------- */
+const KIND = { thm:'Theorem', def:'Definition', met:'Method', ex:'Example' };
+function entryHTML(e, id, extra){
+  let s = '<article class="entry ' + e.c + (marks[id] ? ' done' : '') + '" data-id="' + id + '"><div class="ehead"><div><span class="kind">' + (e.k || KIND[e.c]) + '</span><h3>' + e.t + '</h3></div>' +
+    '<label class="got"><input type="checkbox" id="m-' + id.replace(':','-') + (extra ? '-s' : '') + '"' + (marks[id] ? ' checked' : '') + '> got it</label></div>';
+  if (e.f) s += '<div class="formula">' + e.f + '</div>';
+  if (e.d) s += '<div class="does">' + (e.c === 'thm' || e.c === 'met' ? '<span class="lab">What it does</span>' : '') + e.d + '</div>';
+  if (e.s) s += '<div class="reqs"><span class="lab">Steps</span><ol>' + e.s.map(x => '<li>' + x + '</li>').join('') + '</ol></div>';
+  if (e.r) s += '<div class="reqs"><span class="lab">' + (e.c === 'thm' ? 'Requirements' : 'Checklist') + '</span><ul>' + e.r.map(x => '<li>' + x + '</li>').join('') + '</ul></div>';
+  if (e.n) s += '<p class="note">' + e.n + '</p>';
+  if (e.x) s += '<div class="stop"><span class="lab">Stop and check when</span><ul>' + e.x.map(x => '<li>' + x + '</li>').join('') + '</ul></div>';
+  if (extra) s += extra;
+  return s + '</article>';
+}
+function buildPages(){
+  let html = '';
+  CH.forEach(ch => {
+    const secs = ch.items.filter(e => e.sec);
+    html += '<div class="page" id="p-' + ch.id + '" data-acc="' + ch.acc + '"><button class="back" data-home>← All chapters</button>' +
+      '<div class="chead"><div class="num">Chapter ' + ch.n + '</div><h2>' + ch.title + '</h2><p>' + ch.blurb + '</p></div>' +
+      '<nav class="jump" aria-label="Sections">' + secs.map((s, i) => '<a href="#" data-sec="' + ch.id + '-s' + i + '">' + s.sec + '</a>').join('') + '</nav>';
+    let si = 0;
+    ch.items.forEach((e, i) => {
+      if (e.sec) html += '<h4 class="sec" id="' + ch.id + '-s' + (si++) + '">' + e.sec + '</h4>';
+      else if (e.w) html += '<div class="lab-w" data-w="' + e.w + '">' + W[e.w].html + '</div>';
+      else html += entryHTML(e, ch.id + ':' + i);
+    });
+    html += '</div>';
+  });
+  html += '<div class="page" id="p-exam-map" data-acc="par"><button class="back" data-home>← All chapters</button><div class="chead"><div class="num">Chapter 09</div><h2>Exam map</h2><p>Find the wording of the question on the left; the method is on the right. Click a row to open the chapter.</p></div>' +
+    '<h4 class="sec">Question to method</h4><div class="tw"><table class="map"><tr><th>The question asks</th><th>Reach for</th></tr>' +
+    MAP.map(r => '<tr class="go" data-go="' + r[2] + '" tabindex="0"><td>' + r[0] + '</td><td>' + r[1] + '</td></tr>').join('') + '</table></div>' +
+    '<h4 class="sec">Ten ways to lose points</h4><article class="entry ex"><ol>' + [
+      'Using the whole coefficient of \\(u_{xy}\\) as \\(b\\); it is \\(2b\\).',
+      'Answering "no solution" when \\(J=0\\) without testing whether the curve is characteristic.',
+      'Dropping \\(v_ss_{xx}+v_tt_{xx}\\) in the chain rule for a non-linear substitution.',
+      "Wrong \\(c\\) or a missing \\(\\frac1{2c}\\) in d'Alembert.",
+      'Applying the parallelogram rule or the homogeneous formula to an equation with a source.',
+      'Solving \\(T\\) from the separated equation when there is a source; forgetting \\(n=0\\) with Neumann ends.',
+      'Separating variables with non-homogeneous boundary conditions.',
+      'Claiming pointwise convergence at endpoints, or denying uniform convergence only because the sufficient conditions fail.',
+      'Keeping \\(\\ln r\\) and \\(r^{-n}\\) in a disk, or discarding them in an annulus.',
+      'Using the weak maximum principle on an unbounded domain, or skipping one piece of the boundary.'
+    ].map(x => '<li>' + x + '</li>').join('') + '</ol></article></div>';
+  $('#pages').innerHTML = html;
+}
+function buildGrid(){
+  const cards = CH.map(ch => ({ id: ch.id, acc: ch.acc, n: ch.n, title: ch.title, blurb: ch.blurb, count: entriesOf(ch).length, live: ch.live }))
+    .concat([{ id:'exam-map', acc:'par', n:'09', title:'Exam map', blurb:'Question wording to method, in one table, plus the ten mistakes that cost the most points.', count:0 }]);
+  $('#grid').innerHTML = cards.map(c => '<button class="card" data-acc="' + c.acc + '" data-go="' + c.id + '"><div class="num"><span>Chapter ' + c.n + '</span>' + (c.live ? '<span class="live">● ' + c.live + ' live</span>' : '') + '</div><h3>' + c.title + '</h3><p>' + c.blurb + '</p>' +
+    (c.count ? '<div class="mini"><i data-mini="' + c.id + '"></i></div><div class="meta"><span>' + c.count + ' entries</span><span data-minit="' + c.id + '"></span></div>' : '<div class="meta"><span>lookup table</span><span>open →</span></div>') + '</button>').join('');
+}
+function progress(){
+  let tot = 0, done = 0;
+  CH.forEach(ch => { const es = entriesOf(ch), d = es.filter(o => marks[o.id]).length; tot += es.length; done += d;
+    const bar = $('[data-mini="' + ch.id + '"]'), tx = $('[data-minit="' + ch.id + '"]'); if (bar) bar.style.width = (es.length ? d/es.length*100 : 0) + '%'; if (tx) tx.textContent = d + ' / ' + es.length; });
+  $('#ptext').textContent = done + ' of ' + tot + ' marked as known'; $('#pbar').style.width = (tot ? done/tot*100 : 0) + '%';
+}
+
+/* ---------- navigation ---------- */
+const inited = {};
+function stopAll(){ Object.keys(W).forEach(k => { if (W[k].stop) W[k].stop(); }); }
+function drawVisible(){ const pg = $('.page.on'); if (!pg) return; pg.querySelectorAll('[data-w]').forEach(el => { const k = el.dataset.w; if (!inited[k]){ W[k].init(); inited[k] = 1; } W[k].draw(); }); if (pg.id === 'home') hero.draw(); }
+window.typesetNow = function(){ const pg = $('.page.on'); if (window.mjReady && pg && window.MathJax.typesetPromise) window.MathJax.typesetPromise([pg]).catch(function(){}); };
+function show(id, keepScroll){
+  stopAll();
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('on'));
+  const el = document.getElementById(id) || $('#home'); el.classList.add('on');
+  if (!keepScroll) window.scrollTo(0, 0);
+  drawVisible(); window.typesetNow();
+}
+function route(){ const h = location.hash.replace('#',''); if (h && document.getElementById('p-' + h)) show('p-' + h); else show('home'); }
+function go(id){ $('#q').value = ''; if (location.hash === '#' + id) route(); else location.hash = id || ''; if (!id) { try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {} route(); } }
+
+document.addEventListener('click', e => {
+  const g = e.target.closest('[data-go]'); if (g){ go(g.dataset.go); return; }
+  if (e.target.closest('[data-home]') || e.target.closest('#brand')){ go(''); return; }
+  const s = e.target.closest('[data-sec]'); if (s){ e.preventDefault(); const t = document.getElementById(s.dataset.sec); if (t) t.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' }); }
+});
+document.addEventListener('keydown', e => { if (e.key === 'Enter'){ const g = e.target.closest && e.target.closest('tr[data-go]'); if (g) go(g.dataset.go); } });
+document.addEventListener('change', e => {
+  if (e.target.matches('.got input')){ const a = e.target.closest('.entry'), id = a.dataset.id; if (e.target.checked) marks[id] = 1; else delete marks[id];
+    document.querySelectorAll('.entry[data-id="' + id + '"]').forEach(x => { x.classList.toggle('done', !!marks[id]); const c = $('.got input', x); if (c) c.checked = !!marks[id]; }); save(); progress(); }
+});
+$('#reset').onclick = () => { marks = {}; save(); document.querySelectorAll('.entry.done').forEach(x => x.classList.remove('done')); document.querySelectorAll('.got input').forEach(c => c.checked = false); progress(); };
+window.addEventListener('hashchange', route);
+let rz; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(drawVisible, 120); });
+
+/* ---------- search ---------- */
+const strip = s => (s || '').replace(/<[^>]+>/g, ' ').replace(/\\[a-zA-Z]+|[\\{}()\[\]]/g, ' ').toLowerCase();
+const INDEX = []; CH.forEach(ch => entriesOf(ch).forEach(o => INDEX.push({ ch, e: o.e, id: o.id, text: strip([o.e.k, o.e.t, o.e.d, o.e.n, (o.e.s||[]).join(' '), (o.e.r||[]).join(' '), (o.e.x||[]).join(' ')].join(' ')) + ' ' + (o.e.f || '').toLowerCase() })));
+let st; $('#q').addEventListener('input', e => { clearTimeout(st); st = setTimeout(() => {
+  const q = e.target.value.trim().toLowerCase();
+  if (q.length < 2){ if ($('#searchpage').classList.contains('on')) route(); return; }
+  const words = q.split(/\s+/), hits = INDEX.filter(o => words.every(wd => o.text.indexOf(wd) !== -1));
+  $('#stitle').textContent = hits.length + (hits.length === 1 ? ' result' : ' results') + ' for “' + e.target.value.trim() + '”';
+  $('#sres').innerHTML = hits.length ? hits.slice(0, 40).map(o => entryHTML(o.e, o.id, '<p style="margin:10px 0 0"><button class="tbtn" data-go="' + o.ch.id + '">Open chapter ' + o.ch.n + ': ' + o.ch.title + ' →</button></p>')).join('')
+    : '<div class="empty">Nothing matches. Try a single keyword such as “Neumann”, “uniform”, “characteristic” or “Jacobi”.</div>';
+  show('searchpage');
+}, 160); });
+
+/* ---------- theme ---------- */
+function setTheme(t){ document.documentElement.setAttribute('data-theme', t); $('#theme').textContent = t === 'dark' ? '☀ Light' : '☾ Dark'; W.disk.key = ''; drawVisible(); try { localStorage.setItem('pde104220-theme', t); } catch (e) {} }
+$('#theme').onclick = () => setTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+
+/* ---------- boot ---------- */
+buildGrid(); buildPages(); progress();
+let saved = 'light'; try { saved = localStorage.getItem('pde104220-theme') || 'light'; } catch (e) {}
+document.documentElement.setAttribute('data-theme', saved === 'dark' ? 'dark' : 'light'); $('#theme').textContent = saved === 'dark' ? '☀ Light' : '☾ Dark';
+route(); hero.run();
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(drawVisible);
+})();
+</script>
+</body>
+</html>
