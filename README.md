@@ -4,8 +4,8 @@ A static, browser-based study guide for Partial Differential Equations. The site
 
 ## Live site
 
-https://thenotoriousteto.github.io/pde-field-guide/
+https://ehabhajjo.github.io/pde-field-guide/
 
 ## Update the site
 
-Edit `index.html`, then commit and push changes to the `main` branch. GitHub Pages publishes the repository root.
+Edit `index.html`, then commit changes to the `main` branch. GitHub Pages publishes the repository root.
